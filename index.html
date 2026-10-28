@@ -1,0 +1,945 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>원의 접선과 현이 이루는 각 — 스스로 증명하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#edf2f5; --grid:rgba(38,92,140,.07); --surface:#ffffff; --surface-2:#f3f6f8;
+  --ink:#1b2b4a; --muted:#5b6a82; --line:#d3dce5;
+  --fig:#1b2b4a; --aux:#7f8ba0; --hl:#0d8f8a;
+  --o:#e0661a; --o-soft:rgba(224,102,26,.22);
+  --b:#2667c9; --b-soft:rgba(38,103,201,.2);
+  --v:#7c4dce; --v-soft:rgba(124,77,206,.18);
+  --ok:#1f8a52; --ok-soft:rgba(31,138,82,.11);
+  --bad:#c93a2f; --bad-soft:rgba(201,58,47,.1);
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121a26; --grid:rgba(140,180,220,.06); --surface:#1a2433; --surface-2:#212d3f;
+    --ink:#e6ecf4; --muted:#9caabf; --line:#2d3b50;
+    --fig:#dfe7f2; --aux:#8592a8; --hl:#3ccfc8;
+    --o:#ff9550; --o-soft:rgba(255,149,80,.24);
+    --b:#6fa5ff; --b-soft:rgba(111,165,255,.22);
+    --v:#b493ff; --v-soft:rgba(180,147,255,.2);
+    --ok:#4cc985; --ok-soft:rgba(76,201,133,.13);
+    --bad:#ff6e63; --bad-soft:rgba(255,110,99,.12);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121a26; --grid:rgba(140,180,220,.06); --surface:#1a2433; --surface-2:#212d3f;
+  --ink:#e6ecf4; --muted:#9caabf; --line:#2d3b50;
+  --fig:#dfe7f2; --aux:#8592a8; --hl:#3ccfc8;
+  --o:#ff9550; --o-soft:rgba(255,149,80,.24);
+  --b:#6fa5ff; --b-soft:rgba(111,165,255,.22);
+  --v:#b493ff; --v-soft:rgba(180,147,255,.2);
+  --ok:#4cc985; --ok-soft:rgba(76,201,133,.13);
+  --bad:#ff6e63; --bad-soft:rgba(255,110,99,.12);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{
+  margin:0; color:var(--ink); background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;
+  font-family:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  font-size:16px; line-height:1.7; -webkit-text-size-adjust:100%;
+}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 18px 64px}
+h1,h2,h3{font-family:"Gowun Batang","Noto Serif KR",Georgia,serif;font-weight:700;line-height:1.3;margin:0}
+header h1{font-size:clamp(1.7rem,4.5vw,2.5rem);letter-spacing:-.01em}
+header .sub{color:var(--muted);margin:.5rem 0 0;max-width:62ch}
+.how{display:flex;flex-wrap:wrap;gap:6px 18px;margin:14px 0 0;padding:0;list-style:none;color:var(--muted);font-size:.92rem}
+.how li::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--o);margin-right:8px;vertical-align:middle}
+
+.tabs{display:flex;gap:8px;margin:26px 0 22px;overflow-x:auto;padding-bottom:4px}
+.tab{flex:0 0 auto;display:flex;align-items:center;gap:8px;font:inherit;font-size:.95rem;color:var(--muted);
+  background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:8px 14px;cursor:pointer;min-height:44px}
+.tab .tn{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-weight:700;font-size:.85rem}
+.tab[aria-selected="true"]{color:var(--ink);border-color:var(--ink);font-weight:700}
+.tab[aria-selected="true"] .tn{background:var(--ink);color:var(--surface)}
+.tab .chk{display:none;color:var(--ok);font-weight:700}
+.tab.done .chk{display:inline}
+.tab:focus-visible,.choice:focus-visible,button:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+
+.case-head{display:flex;gap:14px;align-items:flex-start}
+.cbadge{flex:0 0 auto;display:grid;place-items:center;width:42px;height:42px;border-radius:50%;background:var(--ink);color:var(--surface);font-family:"Gowun Batang",serif;font-weight:700;font-size:1.3rem}
+.case-head h2{font-size:1.5rem}
+.case-head .intro{margin:.3rem 0 0;color:var(--muted);max-width:60ch}
+.case-head .tools{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto}
+.prog{font-size:.85rem;color:var(--muted);white-space:nowrap}
+.reset{font:inherit;font-size:.85rem;color:var(--muted);background:none;border:1px solid var(--line);border-radius:8px;padding:4px 10px;cursor:pointer}
+.reset:hover{color:var(--ink);border-color:var(--ink)}
+.goal{margin:16px 0 18px;padding:10px 14px;border-left:4px solid var(--o);background:var(--surface);border-radius:0 10px 10px 0;font-size:1.02rem}
+
+.workspace{display:grid;grid-template-columns:minmax(0,410px) minmax(0,1fr);gap:26px;align-items:start}
+.fig{margin:0;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 14px 10px}
+.proof .fig{position:sticky;top:calc(env(safe-area-inset-top,0px) + 14px)}
+.fig svg{width:100%;height:auto;display:block;touch-action:none}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--muted);padding:6px 4px 0}
+.sw{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.sw.o{background:var(--o)} .sw.v{background:var(--v)} .sw.b{background:var(--b)} .sw.h{background:var(--hl)}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.step{display:flex;gap:12px;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;transition:border-color .25s,box-shadow .25s}
+.step.locked{display:none}
+.step.active{border-color:var(--o);box-shadow:0 0 0 4px var(--o-soft)}
+.step.enter{animation:enter .35s ease-out}
+@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.snum{flex:0 0 auto;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--surface-2);color:var(--ink);font-weight:700;font-size:.9rem;margin-top:1px}
+.step.active .snum{background:var(--o);color:#fff}
+.step.done .snum{background:var(--ok);color:#fff}
+.sbody{flex:1;min-width:0}
+.stext{margin:0;font-size:1.04rem;line-height:1.95}
+.blank{display:inline-flex;align-items:center;justify-content:center;min-width:3.4em;padding:0 .45em;margin:0 .15em;border-bottom:2px dashed var(--muted);color:var(--muted);font-weight:700;line-height:1.5}
+.blank.cur{border-bottom-color:var(--o);color:var(--o);background:var(--o-soft);border-radius:6px 6px 0 0}
+.blank.filled{border-bottom:2px solid var(--ok);color:var(--ok);background:var(--ok-soft);border-radius:6px 6px 0 0}
+.blank.pop{animation:pop .3s ease-out}
+@keyframes pop{50%{transform:scale(1.12)}}
+.choices{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.choices:empty{display:none}
+.choice{font:inherit;font-size:1rem;padding:6px 18px;min-height:44px;border-radius:999px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink);cursor:pointer}
+.choice:hover:not(:disabled){border-color:var(--o);background:var(--o-soft)}
+.choice.wrong{border-color:var(--bad);color:var(--bad);background:var(--bad-soft);text-decoration:line-through;cursor:not-allowed;animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.fb{min-height:0;font-size:.9rem;margin-top:6px}
+.fb:empty{display:none}
+.fb.ok{color:var(--ok)} .fb.no{color:var(--bad)}
+.hintrow{margin-top:6px}
+.hintbtn{font:inherit;font-size:.85rem;color:var(--muted);background:none;border:none;padding:4px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.hint{margin:4px 0 0;padding:8px 12px;background:var(--surface-2);border-radius:10px;font-size:.92rem;color:var(--ink)}
+.step.done .hintrow{display:none}
+
+.k{font-weight:700}
+.k.o{color:var(--o)} .k.b{color:var(--b)} .k.v{color:var(--v)}
+.arc{position:relative;display:inline-block;padding-top:.15em}
+.arc::before{content:"";position:absolute;left:8%;right:8%;top:.05em;height:.4em;border:1.6px solid currentColor;border-bottom:none;border-radius:50% 50% 0 0/100% 100% 0 0}
+.cn{display:inline-grid;place-items:center;width:1.35em;height:1.35em;border-radius:50%;background:var(--ink);color:var(--surface);font-size:.78em;font-weight:700;vertical-align:.08em;margin:0 .1em}
+
+.finish{margin-top:16px;padding:18px 20px;border:2px solid var(--ok);background:var(--surface);border-radius:16px;animation:enter .4s ease-out}
+.finish h3{font-size:1.25rem;color:var(--ok)}
+.finish .chain{font-size:1.08rem;margin:.6rem 0;overflow-x:auto;white-space:nowrap}
+.finish p{margin:.3rem 0;color:var(--muted)}
+.next{font:inherit;font-weight:700;margin-top:10px;padding:10px 20px;min-height:44px;border-radius:12px;border:none;background:var(--ink);color:var(--surface);cursor:pointer}
+
+/* figure */
+.el{transition:opacity .35s}
+.el.off{opacity:0;pointer-events:none}
+.el.dim{opacity:.28}
+.circ{fill:none;stroke:var(--fig);stroke-width:1.7}
+.seg{stroke:var(--fig);stroke-width:1.7;stroke-linecap:round}
+.seg.aux{stroke:var(--aux);stroke-dasharray:5 4}
+.el.hl .seg{stroke:var(--hl);stroke-width:3.4;stroke-dasharray:none}
+.pt{fill:var(--fig)}
+.el.hl .pt{fill:var(--hl)}
+.lbl{font-family:"Times New Roman",Georgia,serif;font-size:16px;fill:var(--ink)}
+.ang{stroke-width:1.6;stroke-linejoin:round}
+.ang.o{fill:var(--o-soft);stroke:var(--o)}
+.ang.b{fill:var(--b-soft);stroke:var(--b)}
+.ang.v{fill:var(--v-soft);stroke:var(--v)}
+.ang.g{fill:rgba(127,139,160,.18);stroke:var(--aux)}
+.el.hl .ang{stroke-width:2.4;animation:blink 1.4s ease-in-out infinite}
+@keyframes blink{50%{opacity:.5}}
+.arcpath{fill:none;stroke:var(--b);stroke-width:6;stroke-linecap:round;opacity:.65}
+.arcpath.o{stroke:var(--o);opacity:.5}
+.arcpath.g{stroke:var(--ok);stroke-width:8;opacity:.85}
+.handle{fill:transparent;cursor:grab}
+.pv{--pc:var(--ok);--pcs:var(--ok-soft);animation:pvin .3s ease-out}
+.pv.no{--pc:var(--bad);--pcs:var(--bad-soft)}
+@keyframes pvin{from{opacity:0}to{opacity:1}}
+.pv .pa{fill:var(--pcs);stroke:var(--pc);stroke-width:2.4;stroke-linejoin:round}
+.pv .pl{stroke:var(--pc);stroke-width:3.6;stroke-linecap:round}
+.pv .pl.dash{stroke-dasharray:6 5;stroke-width:2.6}
+.pv .parc{fill:none;stroke:var(--pc);stroke-width:7;stroke-linecap:round;opacity:.75}
+.pv .pring{fill:none;stroke:var(--pc);stroke-width:2.5}
+.pv .pdot{fill:var(--pc)}
+.pv .plbl{fill:var(--pc);font:700 16px "IBM Plex Sans KR",sans-serif;paint-order:stroke;stroke:var(--surface);stroke-width:4px}
+.pvcap{margin:6px 4px 0;font-size:.88rem;line-height:1.5;color:var(--ink)}
+.pvcap:empty{display:none}
+.pvcap b{margin-right:4px}.pvcap .ok{color:var(--ok)}.pvcap .no{color:var(--bad)}
+.hdot{fill:var(--surface);stroke:var(--o);stroke-width:2.5}
+
+/* summary tab */
+.theorem{background:var(--surface);border:2px solid var(--ok);border-radius:18px;padding:20px 22px;max-width:760px}
+.theorem h2{font-size:1.35rem;color:var(--ok);margin-bottom:.4rem}
+.theorem p{margin:0;font-size:1.05rem}
+.theorem .eq{font-size:1.3rem;margin-top:.5rem}
+.cases3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 30px}
+.mini{font:inherit;text-align:left;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer}
+.mini:hover{border-color:var(--ink)}
+.mini b{display:block;font-family:"Gowun Batang",serif;font-size:1.05rem}
+.mini .eqs{font-size:.88rem;color:var(--muted);margin-top:4px;line-height:1.6}
+.mini .st{font-size:.82rem;margin-top:6px;color:var(--muted)}
+.mini.done .st{color:var(--ok);font-weight:700}
+.sec3 h3{font-size:1.25rem;margin-bottom:.3rem}
+.sec3 .sub{color:var(--muted);margin:0 0 14px}
+.readout{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.rrow{display:flex;gap:14px;flex-wrap:wrap}
+.rcell{flex:1;min-width:130px;padding:12px 14px;border-radius:12px;background:var(--o-soft)}
+.rcell .nm{font-size:.9rem;color:var(--muted)}
+.rcell .val{font-family:"Gowun Batang",serif;font-size:2.2rem;font-weight:700;color:var(--o);line-height:1.2}
+.rcell.gray{background:var(--surface-2)} .rcell.gray .val{color:var(--muted)}
+.kind{display:inline-block;margin-top:14px;padding:3px 12px;border-radius:999px;border:1.5px solid var(--ink);font-weight:700;font-size:.92rem}
+.msg{margin:10px 0 0}
+.msg.warn{color:var(--bad)}
+.tips{margin:14px 0 0;padding-left:1.1em;color:var(--muted);font-size:.92rem}
+
+/* start screen & records */
+.start{max-width:520px;margin:28px 0 0;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:22px 22px 20px}
+.start h2{font-size:1.3rem;margin-bottom:.3rem}
+.start p{margin:0 0 14px;color:var(--muted);font-size:.95rem}
+.field{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.field label{font-size:.9rem;font-weight:500}
+.field input{font:inherit;font-size:1.05rem;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--ink)}
+.field input:focus{outline:none;border-color:var(--ink)}
+.err{color:var(--bad);font-size:.88rem;margin:0 0 10px}
+.err:empty{display:none}
+.who{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin-top:16px;font-size:.92rem}
+.who .id{font-weight:700;padding:3px 12px;border-radius:999px;background:var(--surface);border:1.5px solid var(--ink)}
+.who .sync{color:var(--muted);font-size:.85rem}
+.linkbtn{font:inherit;font-size:.85rem;color:var(--muted);background:none;border:none;padding:4px 2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.timer{display:block;font-size:.85rem;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.rt{width:100%;border-collapse:collapse;font-size:.92rem;font-variant-numeric:tabular-nums}
+.rt th,.rt td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.rt th{font-weight:700;color:var(--muted);font-size:.85rem}
+.rt td.num,.rt th.num{text-align:right}
+.rt tr.sum td{font-weight:700;border-bottom:none}
+.tscroll{overflow-x:auto;margin:6px 0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 20px;margin:0 0 30px}
+.panel h3{margin-bottom:.4rem}
+.panel .note{color:var(--muted);font-size:.9rem;margin:.4rem 0}
+.btn2{font:inherit;font-weight:700;padding:8px 16px;min-height:42px;border-radius:10px;border:1.5px solid var(--ink);background:none;color:var(--ink);cursor:pointer;margin-top:8px}
+.detail td{white-space:normal;color:var(--muted);font-size:.86rem;background:var(--surface-2)}
+.rowbtn{cursor:pointer}
+.rowbtn:hover td{background:var(--surface-2)}
+.elbl{font:700 15px "IBM Plex Sans KR",sans-serif;fill:var(--o);paint-order:stroke;stroke:var(--surface);stroke-width:4px}
+.elbl.g{fill:var(--muted)}
+@media (max-width:780px){
+  .workspace{grid-template-columns:1fr;gap:14px}
+  .proof .fig{top:env(safe-area-inset-top,0px);z-index:5;border-radius:0 0 16px 16px;margin:0 -18px;border-left:none;border-right:none;border-top:none;padding:8px 18px 6px;box-shadow:0 6px 14px -10px rgba(0,0,0,.35)}
+  .proof .fig svg{max-height:36vh;width:auto;max-width:100%;margin:0 auto}
+  .cases3{grid-template-columns:1fr}
+  .case-head{flex-wrap:wrap}
+  .case-head .tools{flex-direction:row;margin-left:56px;align-items:center}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>원의 접선과 현이 이루는 각</h1>
+    <p class="sub">접선 AT와 현 AB가 이루는 ∠BAT가 직각, 예각, 둔각인 세 경우로 나누어 ∠BAT = ∠BCA임을 직접 증명해 봅시다.</p>
+    <ul class="how">
+      <li>단계마다 빈칸에 들어갈 알맞은 것을 보기에서 고르세요</li>
+      <li>그림에서 지금 보고 있는 선과 각이 강조돼요</li>
+      <li>막히면 힌트를 열어 보세요</li>
+    </ul>
+    <div class="who" id="who" hidden><span class="id" id="whoTxt"></span><span class="sync" id="syncTxt"></span><button class="linkbtn" id="switchStu" type="button">다른 학생으로 시작하기</button></div>
+  </header>
+
+  <section class="start" id="start">
+    <h2>시작하기 전에</h2>
+    <p>학번과 이름을 입력하면 단계마다 증명을 끝내는 데 걸린 시간이 기록돼요.</p>
+    <form id="startForm" novalidate>
+      <div class="field"><label for="inSid">학번</label><input id="inSid" inputmode="numeric" autocomplete="off" placeholder="예: 30215" maxlength="12"></div>
+      <div class="field"><label for="inName">이름</label><input id="inName" autocomplete="off" placeholder="예: 김민준" maxlength="20"></div>
+      <p class="err" id="startErr"></p>
+      <button class="next" type="submit">증명 시작하기</button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+
+  <nav class="tabs" role="tablist" aria-label="증명 경우 선택">
+    <button class="tab" role="tab" data-t="0" aria-selected="true"><span class="tn">1</span>직각인 경우<span class="chk">✓</span></button>
+    <button class="tab" role="tab" data-t="1" aria-selected="false"><span class="tn">2</span>예각인 경우<span class="chk">✓</span></button>
+    <button class="tab" role="tab" data-t="2" aria-selected="false"><span class="tn">3</span>둔각인 경우<span class="chk">✓</span></button>
+    <button class="tab" role="tab" data-t="3" aria-selected="false"><span class="tn">✦</span>정리하고 확인하기</button>
+    <button class="tab" role="tab" data-t="4" aria-selected="false" hidden><span class="tn">◎</span>선생님 기록판</button>
+  </nav>
+
+  <main>
+    <section class="proof" id="sec-0"></section>
+    <section class="proof" id="sec-1" hidden></section>
+    <section class="proof" id="sec-2" hidden></section>
+    <section class="sec3" id="sec-3" hidden>
+      <div class="theorem">
+        <h2>원의 접선과 현이 이루는 각</h2>
+        <p>원의 접선과 그 접점을 지나는 현이 이루는 각의 크기는 그 각의 내부에 있는 호에 대한 원주각의 크기와 같다.</p>
+        <p class="eq">즉, <span class="k o">∠BAT</span> = <span class="k o">∠BCA</span></p>
+      </div>
+      <div class="cases3" id="minis"></div>
+      <div class="panel" id="myPanel" hidden>
+        <h3>나의 증명 기록</h3>
+        <p class="note" id="myWho"></p>
+        <div class="tscroll" id="myTable"></div>
+        <p class="note" id="mySync"></p>
+        <button class="btn2" id="dlMine" type="button" hidden>기록 파일로 저장하기</button>
+      </div>
+      <h3>직접 움직여 확인해 보기</h3>
+      <p class="sub">점 B와 점 C를 원 위에서 끌어 보세요. ∠BAT가 직각, 예각, 둔각 중 어느 경우가 되더라도 두 각의 크기가 같은지 확인해 봅시다.</p>
+      <div class="workspace">
+        <figure class="fig">
+          <svg id="exsvg" viewBox="0 0 320 280" role="img" aria-label="점 B와 C를 움직일 수 있는 원 그림">
+            <circle class="circ" cx="160" cy="140" r="105"/>
+            <line class="seg" x1="20" y1="245" x2="302" y2="245"/>
+            <g id="exg"></g>
+          </svg>
+          <div class="legend"><span><i class="sw o"></i>∠BAT와 ∠BCA</span><span><i class="sw o" style="opacity:.5"></i>∠BAT 내부에 있는 호</span></div>
+        </figure>
+        <div class="readout">
+          <div class="rrow">
+            <div class="rcell"><div class="nm">∠BAT (접선과 현이 이루는 각)</div><div class="val" id="vBAT">–</div></div>
+            <div class="rcell" id="cBCA"><div class="nm">∠BCA (원주각)</div><div class="val" id="vBCA">–</div></div>
+          </div>
+          <span class="kind" id="kind">예각인 경우</span>
+          <p class="msg" id="exmsg"></p>
+          <ul class="tips">
+            <li>점 B를 맨 위로 옮기면 현 AB가 지름이 되어 ∠BAT = 90°가 돼요.</li>
+            <li>점 C는 ∠BAT의 내부에 있는 호(주황색)의 반대쪽 호 위에 있어야 해요.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+    <section id="sec-4" hidden>
+      <div class="panel" id="lockPanel" style="max-width:420px">
+        <h3>선생님 기록판</h3>
+        <p class="note">비밀번호를 입력하면 기록판이 열려요.</p>
+        <form id="lockForm" novalidate>
+          <div class="field"><label for="inPw">비밀번호</label><input id="inPw" type="password" inputmode="numeric" autocomplete="off" maxlength="12"></div>
+          <p class="err" id="pwErr"></p>
+          <button class="next" type="submit">기록판 열기</button>
+        </form>
+        <button class="btn2" id="testConn" type="button" style="margin-top:14px">연결 테스트</button>
+        <p class="note" id="testOut" style="white-space:pre-line"></p>
+      </div>
+      <div class="panel" id="boardPanel" hidden>
+        <h3>선생님 기록판</h3>
+        <p class="note">학생들이 경우 1, 2, 3을 증명하는 데 걸린 총 시간이 실시간으로 쌓여요. 진행 중인 경우는 몇 단계까지 했는지 표시돼요.</p>
+        <div class="tscroll" id="board"><p class="note">아직 기록이 없어요.</p></div>
+        <button class="btn2" id="dlAll" type="button" hidden>전체 기록 CSV로 저장하기</button>
+        <button class="btn2" id="resetAll" type="button" style="border-color:var(--bad);color:var(--bad);margin-left:6px">기록 모두 지우기</button>
+        <p class="note" id="resetMsg" aria-live="polite"></p>
+      </div>
+    </section>
+  </main>
+  </div>
+</div>
+
+<script>
+(function(){
+const CX=160, CY=140, R=105;
+const rad=d=>d*Math.PI/180;
+const P=d=>({x:CX+R*Math.cos(rad(d)), y:CY-R*Math.sin(rad(d))});
+const O={x:CX,y:CY}, A=P(-90), T={x:272,y:A.y};
+const f=n=>(+n).toFixed(2);
+
+function sector(V,P1,P2,r){
+  const a1=Math.atan2(P1.y-V.y,P1.x-V.x), a2=Math.atan2(P2.y-V.y,P2.x-V.x);
+  let d=a2-a1; while(d>Math.PI)d-=2*Math.PI; while(d<-Math.PI)d+=2*Math.PI;
+  const s={x:V.x+r*Math.cos(a1),y:V.y+r*Math.sin(a1)}, e={x:V.x+r*Math.cos(a1+d),y:V.y+r*Math.sin(a1+d)};
+  return `M${f(V.x)},${f(V.y)} L${f(s.x)},${f(s.y)} A${r},${r} 0 0 ${d>0?1:0} ${f(e.x)},${f(e.y)} Z`;
+}
+function rightSq(V,P1,P2,s){
+  const n=p=>{const dx=p.x-V.x,dy=p.y-V.y,l=Math.hypot(dx,dy);return{x:dx/l,y:dy/l}};
+  const u=n(P1), w=n(P2);
+  return `M${f(V.x)},${f(V.y)} L${f(V.x+u.x*s)},${f(V.y+u.y*s)} L${f(V.x+(u.x+w.x)*s)},${f(V.y+(u.y+w.y)*s)} L${f(V.x+w.x*s)},${f(V.y+w.y*s)} Z`;
+}
+function arcOn(d1,d2){
+  const s=P(d1), e=P(d2), large=(d2-d1)>180?1:0;
+  return `M${f(s.x)},${f(s.y)} A${R},${R} 0 ${large} 0 ${f(e.x)},${f(e.y)}`;
+}
+const line=(p,q,cls='seg')=>`<line class="${cls}" x1="${f(p.x)}" y1="${f(p.y)}" x2="${f(q.x)}" y2="${f(q.y)}"/>`;
+const dot=p=>`<circle class="pt" cx="${f(p.x)}" cy="${f(p.y)}" r="3.2"/>`;
+function lblOut(t,d){const e=R+16;return `<text class="lbl" x="${f(CX+e*Math.cos(rad(d)))}" y="${f(CY-e*Math.sin(rad(d)))}" text-anchor="middle" dominant-baseline="central">${t}</text>`}
+const lblO=`<text class="lbl" x="${CX+9}" y="${CY+5}" dominant-baseline="central">O</text>`;
+const lblT=`<text class="lbl" x="${T.x}" y="${A.y+16}" text-anchor="middle" dominant-baseline="central">T</text>`;
+
+const FIG=[{B:90,C:160},{B:40,C:160},{B:138,C:196}];
+function figSvg(n){
+  const Bd=FIG[n].B, Cd=FIG[n].C, B=P(Bd), C=P(Cd), D=P(90);
+  const L=[]; const g=(k,base,inner)=>L.push(`<g class="el" data-k="${k}"${base?' data-base="1"':''}>${inner}</g>`);
+  g('circle',1,`<circle class="circ" cx="${CX}" cy="${CY}" r="${R}"/>`);
+  if(n===0) g('arcAB',0,`<path class="arcpath g" d="${arcOn(-90,90)}"/>`);
+  if(n===1) g('arcDB',0,`<path class="arcpath" d="${arcOn(40,90)}"/>`);
+  if(n===2) g('arcBD',0,`<path class="arcpath" d="${arcOn(90,138)}"/>`);
+  if(n===0){
+    g('rOA',0,`<path class="ang v" d="${rightSq(A,O,T,14)}"/>`);
+    g('aBAT',0,`<path class="ang o" d="${rightSq(A,B,T,14)}"/>`);
+    g('aBCA',0,`<path class="ang o" d="${rightSq(C,B,A,14)}"/>`);
+  }else{
+    if(n===1){g('aDAB',0,`<path class="ang b" d="${sector(A,D,B,46)}"/>`);g('aDCB',0,`<path class="ang b" d="${sector(C,D,B,46)}"/>`);}
+    else{g('aBAD',0,`<path class="ang b" d="${sector(A,B,D,46)}"/>`);g('aBCD',0,`<path class="ang b" d="${sector(C,B,D,46)}"/>`);}
+    g('aBAT',0,`<path class="ang o" d="${sector(A,B,T,28)}"/>`);
+    g('aBCA',0,`<path class="ang o" d="${sector(C,B,A,28)}"/>`);
+    g('aDAT',0,`<path class="ang v" d="${rightSq(A,D,T,13)}"/>`);
+    g('aDCA',0,`<path class="ang v" d="${rightSq(C,D,A,13)}"/>`);
+  }
+  g('tan',1,line({x:20,y:A.y},{x:302,y:A.y}));
+  if(n>0){g('AD',0,line(A,D,'seg aux'));g('CD',0,line(C,D,'seg aux'));}
+  g('AB',1,line(A,B)); g('CA',1,line(C,A)); g('CB',1,line(C,B));
+  if(n===0) g('OA',0,line(O,A,'seg aux'));
+  g('O',1,dot(O)+lblO);
+  g('pA',1,dot(A)+lblOut('A',-90));
+  g('pB',1,dot(B)+lblOut('B',Bd));
+  g('pC',1,dot(C)+lblOut('C',Cd));
+  g('pT',1,dot(T)+lblT);
+  if(n>0) g('D',0,dot(D)+lblOut('D',90));
+  L.push('<g class="pv"></g>');
+  return L.join('');
+}
+
+const o=s=>`<span class="k o">${s}</span>`, b=s=>`<span class="k b">${s}</span>`, v=s=>`<span class="k v">${s}</span>`;
+const arc=s=>`<span class="arc">${s}</span>`, cn=n=>`<span class="cn">${n}</span>`;
+
+function angVal(P1,V,P2){const a={x:P1.x-V.x,y:P1.y-V.y},b={x:P2.x-V.x,y:P2.y-V.y};return Math.acos(Math.max(-1,Math.min(1,(a.x*b.x+a.y*b.y)/(Math.hypot(a.x,a.y)*Math.hypot(b.x,b.y)))))*180/Math.PI}
+const PTS=FIG.map(g=>({A,B:P(g.B),C:P(g.C),D:P(90),O,T}));
+const DEG=FIG.map(g=>({A:-90,B:g.B,C:g.C,D:90}));
+const DAB=angVal(PTS[1].D,A,PTS[1].B), BAD=angVal(PTS[2].B,A,PTS[2].D);
+
+const cases=[
+ {num:'1', title:'∠BAT가 직각인 경우', legend:['o','v','h'],
+  intro:'∠BAT = 90°일 때, ∠BAT = ∠BCA임을 증명해 봅시다.',
+  chain:`${o('∠BAT')} = ${o('∠BCA')} = 90°`,
+  steps:[
+   {t:`접선 AT는 접점 A를 지나는 반지름 OA와 [[0]]이다. (${o('∠BAT')} = 90°)`,
+    bl:[[{t:'수직',f:[['seg','O','A'],['tan'],['ang','O','A','T']],cap:'반지름 OA와 접선 AT가 만나서 이루는 각을 표시했어요.'},
+         {t:'평행',f:[['seg','O','A'],['par']],cap:'점 O를 지나고 접선에 평행한 직선을 점선으로 그렸어요. 반지름 OA와 같은 방향인가요?'},
+         {t:'길이가 같은 관계',f:[['seg','O','A'],['tan']],cap:'반지름 OA는 길이가 정해진 선분이지만 접선 AT는 끝없이 뻗은 직선이에요.'}]],
+    hint:'원의 접선은 그 접점을 지나는 반지름과 어떤 관계였는지 떠올려 보세요.',
+    on:['OA','rOA'], hl:['OA','tan','rOA']},
+   {t:`따라서 현 AB는 중심 O를 지나는 [[0]]이다.`,
+    bl:[
+        [{t:'지름',f:[['seg','A','B'],['pt','O']],cap:'원의 중심 O를 지나는 현을 표시했어요.'},
+         {t:'반지름',f:[['seg','O','A']],cap:'반지름은 원의 중심과 원 위의 한 점을 잇는 선분이에요. 현 AB 전체와 비교해 보세요.'},
+         {t:'접선',f:[['tan']],cap:'접선은 원과 한 점에서만 만나는 직선이에요. 현 AB는 원과 두 점에서 만나요.'}]],
+    hint:'점 A에서 접선에 수직인 직선은 반지름 OA 방향이에요. 원의 중심을 지나는 현을 무엇이라고 하나요?',
+    on:['aBAT'], hl:['AB','aBAT','O']},
+   {t:`${o('∠BCA')}는 [[0]]에 대한 원주각이므로 ∠BCA = [[1]]이다.`,
+    bl:[[{t:'반원',f:[['half'],['ang','B','C','A']],cap:'지름 AB로 나뉜 반원과, 그 반원에 대한 원주각 ∠BCA를 표시했어요.'},'현 BC','현 CA'],['90°','45°','180°']],
+    degAt:[['B','C','A']],
+    hint:'지름의 양 끝 점으로 나뉜 호는 원의 절반이에요. 반원에 대한 원주각의 크기는 얼마일까요?',
+    on:['aBCA','arcAB'], hl:['aBCA','CA','CB','AB','arcAB']},
+   {t:`따라서 ${o('∠BAT')} = [[0]] = 90°이다.`,
+    bl:[['∠BCA','∠ABC','∠CAB']],
+    hint:'앞 단계에서 크기가 90°라고 밝힌 두 각을 찾아보세요.',
+    on:[], hl:['aBAT','aBCA']}
+  ]},
+ {num:'2', title:'∠BAT가 예각인 경우', legend:['o','v','b','h'],
+  intro:`∠BAT가 90°보다 작을 때도 ∠BAT = ∠BCA일까요? 경우 ${cn(1)}에서 증명한 사실을 쓸 수 있도록 보조선을 그어 봅시다.`,
+  chain:`${o('∠BAT')} = ∠DAT − ∠DAB = ∠DCA − ∠DCB = ${o('∠BCA')}`,
+  steps:[
+   {t:`경우 ${cn(1)}을 이용하려면 점 A에서 직각을 만들어야 한다. 그래서 점 A를 지나는 원 O의 [[0]] AD를 긋고, 현 CD를 긋는다.`,
+    bl:[[{t:'지름',f:[['seg','A','D'],['pt','O'],['pt','D'],['ang','D','A','T']],cap:'점 A에서 중심 O를 지나 원과 다시 만나는 점 D까지 그은 선분이에요. 접선과 이루는 각도 함께 표시했어요.'},
+         {t:'접선',f:[['tan']],cap:'점 A에서의 접선은 이미 그려져 있는 직선 AT예요. 새 보조선이 될 수 없어요.'},
+         {t:'반지름',f:[['seg','A','O'],['pt','O']],cap:'반지름은 중심 O까지만 가서 원 위의 점 D에 닿지 않아요.'}]],
+    hint:`경우 ${cn(1)}에서는 점 A를 지나는 현이 원의 중심을 지날 때 접선과 직각을 이루었어요.`,
+    on:[], after:['AD','CD','D'], hl:['AD','CD','D']},
+   {t:`AD는 지름이므로 경우 ${cn(1)}에 의하여 ${v('∠DAT')} = ${v('∠DCA')} = [[0]]이다.`,
+    bl:[['90°','60°','180°']], degAt:[['D','A','T'],['D','C','A']],
+    hint:`AD가 지름이면 경우 ${cn(1)}과 똑같은 상황이에요.`,
+    on:['aDAT','aDCA'], hl:['aDAT','aDCA','AD']},
+   {t:`${b('∠DAB')}와 ${b('∠DCB')}는 모두 [[0]]에 대한 원주각이다.`,
+    bl:[[{t:arc('DB'),f:[['arc','D','B']]},{t:arc('AB'),f:[['arc','A','B']]},{t:arc('CD'),f:[['arc','C','D']]}]],
+    hint:'두 각의 변이 원과 만나는 끝점을 살펴보세요. 두 각이 공통으로 마주 보는 호는 어느 것일까요?',
+    on:['aDAB','aDCB'], after:['arcDB'], hl:['aDAB','aDCB']},
+   {t:`한 호에 대한 원주각의 크기는 모두 같으므로 ${b('∠DAB')} = [[0]]이다.`,
+    bl:[['∠DCB','∠DCA','∠BCA']],
+    hint:`${arc('DB')}에 대한 원주각 두 개를 짝지어 보세요.`,
+    on:[], hl:['aDAB','aDCB','arcDB']},
+   {t:`그림에서 ${o('∠BAT')}, ${v('∠DAT')}, ${b('∠DAB')} 사이의 관계를 식으로 나타내면<br>∠BAT = ∠DAT [[0]] ∠DAB`,
+    bl:[[{t:'−',f:[['sweep','A','T',90-DAB]],cap:'∠DAT − ∠DAB만큼의 각을 점 A에 표시했어요. ∠BAT와 겹치는지 보세요.'},
+         {t:'+',f:[['sweep','A','T',90+DAB]],cap:'∠DAT + ∠DAB만큼의 각을 점 A에 표시했어요. ∠BAT보다 큰가요, 작은가요?'},
+         {t:'×',f:[],cap:'각의 크기끼리 곱해서 다른 각을 만들지는 않아요.'}]],
+    hint:'직각 ∠DAT는 ∠DAB와 ∠BAT로 나누어져 있어요. ∠DAT에서 ∠DAB를 어떻게 하면 ∠BAT만 남을까요?',
+    on:['aBAT'], hl:['aBAT','aDAT','aDAB']},
+   {t:`2단계와 4단계의 결과를 위 식에 대입하면<br>∠BAT = [[0]] − [[1]]`,
+    bl:[['∠DCA','∠BCA','∠DAB'],['∠DCB','∠DAB','∠BCA']],
+    hint:'∠DAT 대신 2단계에서 같다고 밝힌 각을, ∠DAB 대신 4단계에서 같다고 밝힌 각을 넣어요.',
+    on:[], hl:['aDCA','aDCB']},
+   {t:`그림에서 ∠DCA − ∠DCB = [[0]]이므로 ${o('∠BAT')} = ${o('∠BCA')}이다.`,
+    bl:[['∠BCA','∠DCB','∠CBA']],
+    hint:'점 C에서 직각 ∠DCA에서 ∠DCB를 빼면 어떤 각이 남나요?',
+    on:['aBCA'], hl:['aBCA','aBAT']}
+  ]},
+ {num:'3', title:'∠BAT가 둔각인 경우', legend:['o','v','b','h'],
+  intro:`∠BAT가 90°보다 클 때도 같은 방법으로 증명할 수 있을까요? 이번에도 경우 ${cn(1)}을 이용해 봅시다.`,
+  chain:`${o('∠BAT')} = ∠DAT + ∠BAD = ∠DCA + ∠BCD = ${o('∠BCA')}`,
+  steps:[
+   {t:`경우 ${cn(1)}을 이용하기 위해 점 A를 지나는 원 O의 [[0]] AD를 긋고, 현 CD를 긋는다.`,
+    bl:[[{t:'지름',f:[['seg','A','D'],['pt','O'],['pt','D'],['ang','D','A','T']],cap:'점 A에서 중심 O를 지나 원과 다시 만나는 점 D까지 그은 선분이에요. 접선과 이루는 각도 함께 표시했어요.'},
+         {t:'접선',f:[['tan']],cap:'점 A에서의 접선은 이미 그려져 있는 직선 AT예요. 새 보조선이 될 수 없어요.'},
+         {t:'반지름',f:[['seg','A','O'],['pt','O']],cap:'반지름은 중심 O까지만 가서 원 위의 점 D에 닿지 않아요.'}]],
+    hint:'점 A에서 접선과 직각을 이루는 현은 원의 중심을 지나요.',
+    on:[], after:['AD','CD','D'], hl:['AD','CD','D']},
+   {t:`AD는 지름이므로 경우 ${cn(1)}에 의하여 ${v('∠DAT')} = ${v('∠DCA')} = [[0]]이다.`,
+    bl:[['90°','45°','180°']], degAt:[['D','A','T'],['D','C','A']],
+    hint:'반원에 대한 원주각의 크기를 떠올려 보세요.',
+    on:['aDAT','aDCA'], hl:['aDAT','aDCA','AD']},
+   {t:`${b('∠BAD')}와 ${b('∠BCD')}는 모두 [[0]]에 대한 원주각이다.`,
+    bl:[[{t:arc('BD'),f:[['arc','B','D']]},{t:arc('AB'),f:[['arc','A','B']]},{t:arc('BC'),f:[['arc','B','C']]}]],
+    hint:'두 각의 변이 원과 만나는 끝점이 무엇인지 살펴보세요.',
+    on:['aBAD','aBCD'], after:['arcBD'], hl:['aBAD','aBCD']},
+   {t:`한 호에 대한 원주각의 크기는 모두 같으므로 ${b('∠BAD')} = [[0]]이다.`,
+    bl:[['∠BCD','∠DCA','∠BCA']],
+    hint:`${arc('BD')}에 대한 원주각 두 개를 짝지어 보세요.`,
+    on:[], hl:['aBAD','aBCD','arcBD']},
+   {t:`그림에서 ${o('∠BAT')}, ${v('∠DAT')}, ${b('∠BAD')} 사이의 관계를 식으로 나타내면<br>∠BAT = ∠DAT [[0]] ∠BAD`,
+    bl:[[{t:'+',f:[['sweep','A','T',90+BAD]],cap:'∠DAT + ∠BAD만큼의 각을 점 A에 표시했어요. ∠BAT와 겹치는지 보세요.'},
+         {t:'−',f:[['sweep','A','T',90-BAD]],cap:'∠DAT − ∠BAD만큼의 각을 점 A에 표시했어요. ∠BAT보다 큰가요, 작은가요?'},
+         {t:'÷',f:[],cap:'각의 크기끼리 나누어서 다른 각을 만들지는 않아요.'}]],
+    hint:'둔각 ∠BAT는 점 A에서 ∠DAT와 ∠BAD로 나누어져 있어요. 두 각을 어떻게 하면 ∠BAT가 될까요?',
+    on:['aBAT'], hl:['aBAT','aDAT','aBAD']},
+   {t:`2단계와 4단계의 결과를 위 식에 대입하면<br>∠BAT = [[0]] + [[1]]`,
+    bl:[['∠DCA','∠BCA','∠BAD'],['∠BCD','∠BAD','∠DCA']],
+    hint:'∠DAT 대신 2단계에서 같다고 밝힌 각을, ∠BAD 대신 4단계에서 같다고 밝힌 각을 넣어요.',
+    on:[], hl:['aDCA','aBCD']},
+   {t:`그림에서 ∠DCA + ∠BCD = [[0]]이므로 ${o('∠BAT')} = ${o('∠BCA')}이다.`,
+    bl:[['∠BCA','∠BCD','∠CBA']],
+    hint:'점 C에서 직각 ∠DCA와 ∠BCD를 합치면 어떤 각이 되나요?',
+    on:['aBCA'], hl:['aBCA','aBAT']}
+  ]}
+];
+const optLabel=x=>typeof x==='string'?x:x.t;
+function optFig(step,opt){
+  if(typeof opt!=='string'){const f=opt.f||[];let cap=opt.cap;if(!cap&&f[0]&&f[0][0]==='arc')cap=`${opt.t}를 표시했어요.`;return{f,cap:cap||''}}
+  let m;
+  if(m=opt.match(/^∠([A-Z])([A-Z])([A-Z])$/)) return {f:[['ang',m[1],m[2],m[3]]],cap:`${opt}를 표시했어요.`};
+  if(m=opt.match(/^현 ([A-Z])([A-Z])$/)) return {f:[['seg',m[1],m[2]]],cap:`${opt}를 표시했어요.`};
+  if(/^[A-Z]$/.test(opt)) return {f:[['pt',opt]],cap:`점 ${opt}를 표시했어요. 현 AB가 이 점을 지나나요?`};
+  if(/°$/.test(opt)) return {f:(step.degAt||[]).flatMap(a=>[['ang',...a],['lbl',opt,...a]]),cap:`표시한 각에 ${opt}를 적어 보았어요. 그림과 어울리나요?`};
+  return {f:[],cap:''};
+}
+function pvSvg(ci,items){
+  const p=PTS[ci], dg=DEG[ci]; let s='';
+  for(const it of items){
+    const k=it[0], a=it.slice(1);
+    if(k==='ang'){const P1=p[a[0]],V=p[a[1]],Q=p[a[2]],val=angVal(P1,V,Q);s+=`<path class="pa" d="${Math.abs(val-90)<.5?rightSq(V,P1,Q,17):sector(V,P1,Q,36)}"/>`}
+    else if(k==='seg') s+=line(p[a[0]],p[a[1]],'pl');
+    else if(k==='tan') s+=line({x:20,y:A.y},{x:302,y:A.y},'pl');
+    else if(k==='par') s+=line({x:CX-128,y:CY},{x:CX+128,y:CY},'pl dash');
+    else if(k==='arc'){let d1=dg[a[0]],d2=dg[a[1]];if(d1>d2)[d1,d2]=[d2,d1];s+=`<path class="parc" d="${d2-d1>180?arcOn(d2,d1+360):arcOn(d1,d2)}"/>`}
+    else if(k==='half') s+=`<path class="parc" d="${arcOn(-90,dg.B)}"/>`;
+    else if(k==='pt'){const q=p[a[0]];s+=`<circle class="pring" cx="${f(q.x)}" cy="${f(q.y)}" r="9"/><circle class="pdot" cx="${f(q.x)}" cy="${f(q.y)}" r="3.4"/>`+(a[0]==='D'?lblOut('D',90):'')}
+    else if(k==='lbl'){const P1=p[a[1]],V=p[a[2]],Q=p[a[3]];const n=q=>{const dx=q.x-V.x,dy=q.y-V.y,l=Math.hypot(dx,dy);return{x:dx/l,y:dy/l}};const u1=n(P1),u2=n(Q);let ux=u1.x+u2.x,uy=u1.y+u2.y;const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;s+=`<text class="plbl" x="${f(V.x+ux*58)}" y="${f(V.y+uy*58)}" text-anchor="middle" dominant-baseline="central">${a[0]}</text>`}
+    else if(k==='sweep'){const V=p[a[0]],deg=a[2],r=44,th=-rad(deg);const e={x:V.x+r*Math.cos(th),y:V.y+r*Math.sin(th)},far={x:V.x+150*Math.cos(th),y:V.y+150*Math.sin(th)};
+      s+=`<path class="pa" d="M${f(V.x)},${f(V.y)} L${f(V.x+r)},${f(V.y)} A${r},${r} 0 0 0 ${f(e.x)},${f(e.y)} Z"/>`+line(V,far,'pl dash')}
+  }
+  return s;
+}
+function setPreview(ci,fig,ok){
+  const g=document.querySelector(`#sec-${ci} .pv`), cap=document.querySelector(`#sec-${ci} .pvcap`);
+  if(!g) return;
+  if(!fig){g.innerHTML='';cap.innerHTML='';return}
+  g.setAttribute('class','pv '+(ok?'ok':'no'));
+  g.innerHTML=pvSvg(ci,fig.f);
+  cap.innerHTML=`<b class="${ok?'ok':'no'}">${ok?'정답':'다시 보기'}</b> ${fig.cap}`;
+}
+const LEG={o:'증명할 두 각',v:'직각 (90°)',b:'같은 호에 대한 원주각',h:'지금 보는 선'};
+const PRAISE=['정답이에요!','좋아요!','맞았어요!','잘했어요!'];
+const state=cases.map(()=>({s:0,b:0,wrong:0,stepWrong:0,done:false,t0:null}));
+let student=null, curTab=0;
+const freshRec=()=>({steps:[],wrong:0,done:false,total:0});
+let rec=cases.map(freshRec);
+const now=()=>Date.now();
+const fmt=sec=>{sec=Math.max(0,Math.round(sec));const m=Math.floor(sec/60),r=sec%60;return m+':'+String(r).padStart(2,'0')};
+const fmtKo=sec=>{sec=Math.max(0,Math.round(sec));const m=Math.floor(sec/60),r=sec%60;return (m?m+'분 ':'')+r+'초'};
+const sumSteps=r=>r.steps.reduce((a,x)=>a+(x?x.t:0),0);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+function renderCase(ci){
+  const c=cases[ci], sec=document.getElementById('sec-'+ci);
+  Object.assign(state[ci],{s:0,b:0,wrong:0,stepWrong:0,done:false});
+  const steps=c.steps.map((st,i)=>`
+    <li class="step locked" data-s="${i}">
+      <div class="snum">${i+1}</div>
+      <div class="sbody">
+        <p class="stext">${st.t.replace(/\[\[(\d)\]\]/g,(_,k)=>`<span class="blank" data-b="${k}">?</span>`)}</p>
+        <div class="choices" role="group" aria-label="보기"></div>
+        <div class="fb" aria-live="polite"></div>
+        <div class="hintrow"><button class="hintbtn" type="button">힌트 보기</button><p class="hint" hidden>${st.hint}</p></div>
+      </div>
+    </li>`).join('');
+  sec.innerHTML=`
+    <div class="case-head">
+      <span class="cbadge">${c.num}</span>
+      <div><h2>${c.title}</h2><p class="intro">${c.intro}</p></div>
+      <div class="tools"><span class="prog"></span><span class="timer"></span><button class="reset" type="button">처음부터 다시</button></div>
+    </div>
+    <div class="goal">증명할 것: ${o('∠BAT')} = ${o('∠BCA')}</div>
+    <div class="workspace">
+      <figure class="fig">
+        <svg viewBox="0 0 320 280" role="img" aria-label="${c.title}의 그림">${figSvg(ci)}</svg>
+        <p class="pvcap" aria-live="polite"></p>
+        <figcaption class="legend">${c.legend.map(k=>`<span><i class="sw ${k}"></i>${LEG[k]}</span>`).join('')}</figcaption>
+      </figure>
+      <div><ol class="steps">${steps}</ol><div class="finwrap"></div></div>
+    </div>`;
+  sec.querySelector('.reset').onclick=()=>{rec[ci]=freshRec();renderCase(ci);saveAll();document.querySelector('.tab[data-t="'+ci+'"]').classList.remove('done');updateMinis()};
+  sec.querySelectorAll('.hintbtn').forEach(btn=>btn.onclick=()=>{const h=btn.nextElementSibling;h.hidden=!h.hidden;btn.textContent=h.hidden?'힌트 보기':'힌트 닫기'});
+  activate(ci,0,false);
+}
+
+function stepEl(ci,s){return document.querySelector(`#sec-${ci} .step[data-s="${s}"]`)}
+
+function updateFig(ci){
+  const c=cases[ci], st=state[ci], on=new Set();
+  let hl;
+  if(st.done){c.steps.forEach(x=>{(x.on||[]).forEach(k=>on.add(k));(x.after||[]).forEach(k=>on.add(k))});hl=new Set(['aBAT','aBCA'])}
+  else{
+    for(let j=0;j<=st.s;j++){(c.steps[j].on||[]).forEach(k=>on.add(k)); if(j<st.s||st.stepDone)(c.steps[j].after||[]).forEach(k=>on.add(k))}
+    hl=new Set(c.steps[st.s].hl.filter(k=>on.has(k)||document.querySelector(`#sec-${ci} .el[data-k="${k}"][data-base]`)));
+  }
+  document.querySelectorAll(`#sec-${ci} .el`).forEach(g=>{
+    const k=g.dataset.k, base=!!g.dataset.base, vis=base||on.has(k);
+    const mark=/^(a|r|arc)/.test(k);
+    g.classList.toggle('off',!vis);
+    g.classList.toggle('hl',hl.has(k));
+    g.classList.toggle('dim',vis&&mark&&!hl.has(k));
+  });
+  document.querySelector(`#sec-${ci} .prog`).textContent=st.done?`${c.steps.length}단계 모두 완료`:`${st.s+1} / ${c.steps.length}단계`;
+}
+
+function activate(ci,s,scroll=true){
+  const st=state[ci]; st.s=s; st.b=0; st.stepWrong=0; st.stepDone=false;
+  st.t0=(student&&curTab===ci)?now():null;
+  setPreview(ci,null);
+  const li=stepEl(ci,s); li.classList.remove('locked'); li.classList.add('active','enter');
+  updateFig(ci); showChoices(ci);
+  if(scroll){setTimeout(()=>li.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'}),60)}
+}
+
+function showChoices(ci){
+  const c=cases[ci], st=state[ci], step=c.steps[st.s], li=stepEl(ci,st.s);
+  const blank=li.querySelector(`.blank[data-b="${st.b}"]`); blank.classList.add('cur');
+  const opts=step.bl[st.b];
+  const box=li.querySelector('.choices');
+  box.innerHTML=shuffle(opts.map((_,i)=>i)).map(i=>`<button class="choice" type="button" data-i="${i}">${optLabel(opts[i])}</button>`).join('');
+  box.querySelectorAll('.choice').forEach(btn=>btn.onclick=()=>pick(ci,+btn.dataset.i,btn));
+}
+
+function pick(ci,i,btn){
+  const c=cases[ci], st=state[ci], step=c.steps[st.s], li=stepEl(ci,st.s), fb=li.querySelector('.fb');
+  if(btn.disabled) return;
+  setPreview(ci,optFig(step,step.bl[st.b][i]),i===0);
+  if(i===0){
+    const blank=li.querySelector(`.blank[data-b="${st.b}"]`);
+    blank.innerHTML=optLabel(step.bl[st.b][0]); blank.classList.remove('cur'); blank.classList.add('filled','pop');
+    fb.className='fb ok'; fb.textContent=PRAISE[Math.floor(Math.random()*PRAISE.length)];
+    st.b++;
+    if(st.b<step.bl.length){showChoices(ci);return}
+    li.querySelector('.choices').innerHTML='';
+    li.classList.remove('active'); li.classList.add('done'); st.stepDone=true; updateFig(ci);
+    const secs=st.t0?(now()-st.t0)/1000:0;
+    rec[ci].steps[st.s]={t:Math.round(secs),w:st.stepWrong}; rec[ci].wrong=st.wrong; rec[ci].total=sumSteps(rec[ci]);
+    st.t0=null; saveAll();
+    setTimeout(()=>{ if(st.s+1<c.steps.length) activate(ci,st.s+1); else finish(ci) },700);
+  }else{
+    btn.classList.add('wrong'); btn.disabled=true; st.wrong++; st.stepWrong++;
+    fb.className='fb no'; fb.textContent='다시 생각해 보세요. 아래 힌트를 참고해도 좋아요.';
+    const h=li.querySelector('.hint'), hb=li.querySelector('.hintbtn'); h.hidden=false; hb.textContent='힌트 닫기';
+  }
+}
+
+function finish(ci){
+  const c=cases[ci], st=state[ci]; st.done=true; setPreview(ci,null); updateFig(ci);
+  rec[ci].done=true; rec[ci].total=sumSteps(rec[ci]); saveAll();
+  const nextLabel=ci<2?`경우 ${ci+2} 증명하러 가기`:'정리하고 확인하기';
+  const w=document.querySelector(`#sec-${ci} .finwrap`);
+  w.innerHTML=`<div class="finish" role="status">
+    <h3>증명 완료!</h3>
+    <div class="chain">${c.chain}</div>
+    <p>${st.wrong===0?'한 번도 틀리지 않고 증명했어요.':`틀린 횟수 ${st.wrong}번. 틀렸던 단계를 다시 읽어 보며 이유를 확인해 보세요.`}</p>
+    <p>증명하는 데 걸린 시간: <b>${fmtKo(rec[ci].total)}</b></p>
+    <button class="next" type="button">${nextLabel}</button></div>`;
+  w.querySelector('.next').onclick=()=>showTab(ci+1);
+  document.querySelector('.tab[data-t="'+ci+'"]').classList.add('done');
+  updateMinis();
+  setTimeout(()=>w.firstElementChild.scrollIntoView({behavior:'smooth',block:'center'}),80);
+}
+
+const MINI_EQ=[
+  '현 AB가 지름 → ∠BCA = 90°<br>∠BAT = ∠BCA = 90°',
+  '지름 AD를 긋기<br>∠BAT = ∠DCA − ∠DCB = ∠BCA',
+  '지름 AD를 긋기<br>∠BAT = ∠DCA + ∠BCD = ∠BCA'
+];
+function updateMinis(){
+  const m=document.getElementById('minis');
+  m.innerHTML=cases.map((c,i)=>`<button class="mini${state[i].done?' done':''}" type="button" data-i="${i}"><b>${c.num}. ${c.title}</b><div class="eqs">${MINI_EQ[i]}</div><div class="st">${state[i].done?'✓ 증명 완료':'아직 증명하지 않았어요'}</div></button>`).join('');
+  m.querySelectorAll('.mini').forEach(x=>x.onclick=()=>showTab(+x.dataset.i));
+}
+
+function showTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(+b.dataset.t===t)));
+  for(let i=0;i<5;i++) document.getElementById('sec-'+i).hidden=(i!==t);
+  if(t<3&&student&&!state[t].done&&state[t].t0==null) state[t].t0=now();
+  if(t===3){updateMinis();drawEx();renderMine()}
+  if(t===4){ if(!boardPanel.hidden){ renderBoard(); loadBoard(); } else setTimeout(()=>document.getElementById('inPw').focus(),50); }
+  document.querySelector('.tabs').scrollIntoView({block:'start',behavior:'smooth'});
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(+b.dataset.t));
+
+/* explorer */
+const ex={B:40,C:170,drag:null};
+const exsvg=document.getElementById('exsvg'), exg=document.getElementById('exg');
+function drawEx(){
+  const B=P(ex.B), C=P(ex.C);
+  const bat=(ex.B+90)/2;
+  const valid=ex.C>ex.B+0.5;
+  const v1={x:B.x-C.x,y:B.y-C.y}, v2={x:A.x-C.x,y:A.y-C.y};
+  const bca=Math.acos(Math.max(-1,Math.min(1,(v1.x*v2.x+v1.y*v2.y)/(Math.hypot(v1.x,v1.y)*Math.hypot(v2.x,v2.y)))))*180/Math.PI;
+  const right=Math.abs(bat-90)<0.01;
+  const cls=valid?'o':'g';
+  exg.innerHTML=`
+    <path class="arcpath o" d="${arcOn(-90,ex.B)}"/>
+    <path class="ang o" d="${right?rightSq(A,B,T,14):sector(A,B,T,28)}"/>
+    <path class="ang ${cls}" d="${valid&&right?rightSq(C,B,A,14):sector(C,B,A,28)}"/>
+    ${line(A,B)}${line(C,A)}${line(C,B)}
+    ${angText(A,B,T,50,Math.round(bat)+'°','')}
+    ${angText(C,B,A,50,Math.round(bca)+'°',valid?'':'g')}
+    ${dot(O)}${lblO}${dot(A)}${lblOut('A',-90)}${dot(T)}${lblT}
+    <circle class="hdot" cx="${f(B.x)}" cy="${f(B.y)}" r="6.5"/>${lblOut('B',ex.B)}
+    <circle class="hdot" cx="${f(C.x)}" cy="${f(C.y)}" r="6.5"/>${lblOut('C',ex.C)}
+    <circle class="handle" data-drag="B" cx="${f(B.x)}" cy="${f(B.y)}" r="20"/>
+    <circle class="handle" data-drag="C" cx="${f(C.x)}" cy="${f(C.y)}" r="20"/>`;
+  document.getElementById('vBAT').textContent=Math.round(bat)+'°';
+  document.getElementById('vBCA').textContent=Math.round(bca)+'°';
+  document.getElementById('cBCA').classList.toggle('gray',!valid);
+  const kind=right?'직각인 경우':bat<90?'예각인 경우':'둔각인 경우';
+  document.getElementById('kind').textContent='∠BAT가 '+kind;
+  const msg=document.getElementById('exmsg');
+  if(valid){msg.className='msg';msg.textContent=`∠BAT = ∠BCA = ${Math.round(bat)}°로 두 각의 크기가 같아요.`}
+  else{msg.className='msg warn';msg.textContent='점 C가 ∠BAT 내부에 있는 호(주황색) 위에 있어요. 점 C를 반대쪽 호로 옮겨 보세요.'}
+}
+function angText(V,P1,P2,dist,t,cls){
+  const n=q=>{const dx=q.x-V.x,dy=q.y-V.y,l=Math.hypot(dx,dy);return{x:dx/l,y:dy/l}};
+  const u1=n(P1),u2=n(P2);let ux=u1.x+u2.x,uy=u1.y+u2.y;const l=Math.hypot(ux,uy)||1;ux/=l;uy/=l;
+  return `<text class="elbl ${cls}" x="${f(V.x+ux*dist)}" y="${f(V.y+uy*dist)}" text-anchor="middle" dominant-baseline="central">${t}</text>`;
+}
+function svgPt(e){const pt=exsvg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;return pt.matrixTransform(exsvg.getScreenCTM().inverse())}
+exsvg.addEventListener('pointerdown',e=>{const d=e.target.dataset&&e.target.dataset.drag;if(!d)return;ex.drag=d;exsvg.setPointerCapture(e.pointerId);e.preventDefault()});
+exsvg.addEventListener('pointermove',e=>{
+  if(!ex.drag)return;
+  const p=svgPt(e); let d=Math.atan2(-(p.y-CY),p.x-CX)*180/Math.PI; if(d<-90)d+=360;
+  d=Math.max(-82,Math.min(262,d));
+  if(ex.drag==='B'){ if(Math.abs(d-90)<4) d=90; ex.B=d } else ex.C=d;
+  drawEx();
+});
+const endDrag=()=>{ex.drag=null};
+exsvg.addEventListener('pointerup',endDrag); exsvg.addEventListener('pointercancel',endDrag);
+
+/* ===== 구글 시트 연결 설정 =====
+   Apps Script를 "웹 앱"으로 배포한 뒤 나오는 URL을 따옴표 안에 붙여 넣으세요.
+   예: 'https://script.google.com/macros/s/AKfy.../exec' */
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwcJwbCXGzuNfd9sGmHgbb08__p4KBeDDnupvSjpTC_T1XcdZu-h8yeaYHO-uIblfPQrQ/exec';
+/* 선생님 기록판은 주소 끝에 ?teacher 를 붙여 열 때만 탭이 보여요.
+   예: https://내사이트주소/index.html?teacher */
+const TEACHER = /[?&#]teacher\b/.test(location.search+location.hash);
+
+async function api(body){
+  let r;
+  try{ r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}) }
+  catch(e){ throw new Error('구글 스크립트에 접속하지 못했어요. 배포의 액세스 권한이 "모든 사용자"인지 확인하세요.') }
+  const txt=await r.text();
+  try{ return JSON.parse(txt) }
+  catch(e){ throw new Error(/로그인|sign in|accounts\.google/i.test(txt)?'구글 로그인을 요구하고 있어요. 배포의 액세스 권한을 "모든 사용자"로 바꾸세요.':'구글 스크립트가 오류 화면을 보냈어요. Apps Script에서 "설정하기"를 실행해 권한을 승인하고 새 버전으로 배포하세요.') }
+}
+function errText(res){
+  if(!res) return '응답이 없어요.';
+  if(res.error==='server_error') return '시트에 쓰는 중 오류: '+(res.message||'')+' — Apps Script에서 "설정하기"를 실행하세요.';
+  if(res.error==='wrong_password') return '비밀번호가 맞지 않아요.';
+  return '오류: '+res.error;
+}
+
+/* ===== student start & records ===== */
+const boardPanel=document.getElementById('boardPanel');
+let boardPw='', boardTimer=null, lastLoad=null;
+document.getElementById('lockForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const pw=document.getElementById('inPw'), err=document.getElementById('pwErr');
+  if(!SHEET_URL){err.textContent='기록 저장 주소(SHEET_URL)가 설정되지 않았어요.';return}
+  err.textContent='확인하고 있어요…';
+  try{
+    const res=await api({action:'list',pw:pw.value});
+    if(res.ok){boardPw=pw.value;pw.value='';err.textContent='';document.getElementById('lockPanel').hidden=true;boardPanel.hidden=false;setBoard(res.rows);startPolling()}
+    else if(res.error==='wrong_password'){err.textContent='비밀번호가 맞지 않아요.';pw.value='';pw.focus()}
+    else err.textContent=errText(res);
+  }catch(x){err.textContent=x.message}
+});
+const LS='tcp-proof-v1';
+function lsGet(){try{return JSON.parse(localStorage.getItem(LS)||'null')}catch(e){return null}}
+function lsSet(v){try{localStorage.setItem(LS,JSON.stringify(v))}catch(e){}}
+let dbState=SHEET_URL?'ok':'off', writing=false, pending=false, boardRows=[], lastErr='';
+
+function saveAll(){
+  if(!student) return;
+  student.updatedAt=new Date().toISOString();
+  lsSet({sid:student.sid,name:student.name});
+  pushRecord(); setSync();
+  if(curTab===3) renderMine();
+}
+function setSync(){
+  const t=dbState==='ok'?'기록이 선생님께 저장되고 있어요.':dbState==='err'?'기록을 보내지 못했어요. 선생님께 알려 주세요. ('+lastErr+')':'기록 저장 주소가 설정되지 않아 기록이 전송되지 않아요. 선생님께 알려 주세요.';
+  document.getElementById('syncTxt').textContent=t;
+  document.getElementById('mySync').textContent=t;
+}
+async function pushRecord(){
+  if(!SHEET_URL||!student) return;
+  if(writing){pending=true;return}
+  writing=true;
+  try{
+    const res=await api({action:'save',aid:student.aid,sid:student.sid,name:student.name,startedAt:student.startedAt,updatedAt:student.updatedAt||student.startedAt,
+      cases:rec.map(r=>({total:r.total,wrong:r.wrong,done:r.done,n:r.steps.filter(Boolean).length}))});
+    if(res&&res.ok){dbState='ok';lastErr=''} else {dbState='err';lastErr=errText(res)}
+  }catch(e){dbState='err';lastErr=e.message}
+  writing=false; setSync();
+  if(pending){pending=false;pushRecord()}
+}
+
+function startAs(sid,name){
+  student={sid,name,aid:'a'+now().toString(36)+Math.random().toString(36).slice(2,7),startedAt:new Date().toISOString()};
+  rec=cases.map(freshRec);
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('done'));
+  cases.forEach((_,i)=>renderCase(i));
+  document.getElementById('start').hidden=true;
+  document.getElementById('app').hidden=false;
+  document.getElementById('who').hidden=false;
+  document.getElementById('whoTxt').textContent=`${sid} ${name}`;
+  showTab(0); saveAll();
+}
+document.getElementById('startForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const sid=document.getElementById('inSid').value.trim(), name=document.getElementById('inName').value.trim(), err=document.getElementById('startErr');
+  if(!sid){err.textContent='학번을 입력하세요.';document.getElementById('inSid').focus();return}
+  if(!name){err.textContent='이름을 입력하세요.';document.getElementById('inName').focus();return}
+  err.textContent=''; startAs(sid,name);
+});
+document.getElementById('switchStu').onclick=()=>{
+  const sb=document.getElementById('switchStu');
+  if(!sb.dataset.arm){sb.dataset.arm='1';sb.textContent='한 번 더 누르면 다른 학생으로 새로 시작해요 (저장된 기록은 그대로)';clearTimeout(sb._t);sb._t=setTimeout(()=>{delete sb.dataset.arm;sb.textContent='다른 학생으로 시작하기'},5000);return}
+  delete sb.dataset.arm; clearTimeout(sb._t); sb.textContent='다른 학생으로 시작하기';
+  student=null; document.getElementById('app').hidden=true; document.getElementById('who').hidden=true;
+  document.getElementById('start').hidden=false; document.getElementById('inSid').value=''; document.getElementById('inName').value='';
+  document.getElementById('inSid').focus();
+};
+(function(){const v=lsGet();if(v){document.getElementById('inSid').value=v.sid||'';document.getElementById('inName').value=v.name||''}})();
+
+function renderMine(){
+  if(!student) return;
+  document.getElementById('myWho').textContent=`${student.sid} ${student.name}`;
+  let all=0;
+  const rows=cases.map((c,i)=>{const r=rec[i];all+=r.total;
+    return `<tr><td>${c.num}. ${c.title}</td><td>${r.done?'완료':r.steps.length?'진행 중':'시작 전'}</td><td class="num">${fmt(r.total)}</td><td class="num">${r.wrong}</td></tr>`}).join('');
+  document.getElementById('myTable').innerHTML=`<table class="rt"><thead><tr><th>경우</th><th>상태</th><th class="num">총 시간</th><th class="num">틀린 횟수</th></tr></thead><tbody>${rows}<tr class="sum"><td>전체</td><td></td><td class="num">${fmt(all)}</td><td class="num">${rec.reduce((a,r)=>a+r.wrong,0)}</td></tr></tbody></table>`;
+}
+
+function csvOf(list){
+  const head=['학번','이름','시작 시각'];
+  cases.forEach((c,i)=>{head.push(`경우${i+1} 총 시간(초)`,`경우${i+1} 틀린 횟수`,`경우${i+1} 완료`)});
+  head.push('전체 합계(초)');
+  const q=v=>{v=String(v??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const lines=[head.map(q).join(',')];
+  for(const a of list){
+    const row=[a.sid,a.name,new Date(a.startedAt).toLocaleString('ko-KR')];let all=0;
+    cases.forEach((c,i)=>{const r=(a.cases&&a.cases[i])||freshRec();row.push(r.total||0,r.wrong||0,r.done?'O':'');all+=r.total||0});
+    row.push(all); lines.push(row.map(q).join(','));
+  }
+  return '\ufeff'+lines.join('\n');
+}
+function saveCsv(name,list){
+  const blob=new Blob([csvOf(list)],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+document.getElementById('dlMine').onclick=()=>{if(student)saveCsv(`증명기록_${student.sid}_${student.name}.csv`,[{...student,cases:rec}])};
+document.getElementById('dlAll').onclick=()=>saveCsv('원의접선과현_증명기록.csv',boardRows);
+document.getElementById('resetAll').onclick=async e=>{
+  const btn=e.currentTarget, msg=document.getElementById('resetMsg');
+  if(!boardRows.length){msg.textContent='지울 기록이 없어요.';return}
+  if(!btn.dataset.arm){btn.dataset.arm='1';btn.textContent='정말 지울까요? 한 번 더 누르세요';msg.textContent=`학생 기록 ${boardRows.length}개가 모두 지워지고 되돌릴 수 없어요. 필요하면 먼저 CSV로 저장하세요.`;clearTimeout(btn._t);btn._t=setTimeout(()=>{delete btn.dataset.arm;btn.textContent='기록 모두 지우기';msg.textContent=''},6000);return}
+  delete btn.dataset.arm; clearTimeout(btn._t); btn.textContent='기록 모두 지우기';
+  btn.disabled=true; msg.textContent='기록을 지우고 있어요…';
+  try{const res=await api({action:'reset',pw:boardPw});msg.textContent=res.ok?'기록을 모두 지웠어요.':'기록을 지우지 못했어요. 다시 눌러 보세요.';if(res.ok)setBoard([])}
+  catch(x){msg.textContent='기록 저장소에 연결하지 못했어요. 다시 눌러 보세요.'}
+  btn.disabled=false;
+};
+
+function setBoard(rows){
+  rows=(rows||[]).slice();
+  rows.sort((x,y)=>String(x.sid).localeCompare(String(y.sid),'ko',{numeric:true})||String(x.startedAt).localeCompare(String(y.startedAt)));
+  boardRows=rows; lastLoad=new Date(); renderBoard();
+}
+async function loadBoard(){
+  if(!boardPw) return;
+  try{const res=await api({action:'list',pw:boardPw}); if(res.ok) setBoard(res.rows)}catch(x){}
+}
+function startPolling(){clearInterval(boardTimer);boardTimer=setInterval(()=>{if(curTab===4&&!document.hidden)loadBoard()},15000)}
+function renderBoard(){
+  const el=document.getElementById('board');
+  const stamp=lastLoad?`<p class="note">마지막으로 불러온 시각 ${lastLoad.toLocaleTimeString('ko-KR')} (15초마다 새로 불러와요)</p>`:'';
+  if(!boardRows.length){el.innerHTML='<p class="note">아직 기록이 없어요. 학생이 증명을 시작하면 여기에 나타나요.</p>'+stamp;return}
+  const rows=boardRows.map(a=>{
+    let all=0,wr=0;const cells=cases.map((c,i)=>{const r=(a.cases&&a.cases[i])||freshRec();all+=r.total||0;wr+=r.wrong||0;
+      const n=r.n||0;
+      return `<td class="num">${r.done?fmt(r.total):(n?`진행 중 (${n}/${c.steps.length}단계)`:'–')}</td>`}).join('');
+    return `<tr><td>${esc(a.sid)}</td><td>${esc(a.name)}</td>${cells}<td class="num">${fmt(all)}</td><td class="num">${wr}</td><td>${new Date(a.updatedAt||a.startedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}</td></tr>`;
+  }).join('');
+  el.innerHTML=`<table class="rt"><thead><tr><th>학번</th><th>이름</th><th class="num">경우 1</th><th class="num">경우 2</th><th class="num">경우 3</th><th class="num">전체</th><th class="num">틀린 횟수</th><th>마지막 기록</th></tr></thead><tbody>${rows}</tbody></table>`+stamp;
+}
+
+/* live timer */
+setInterval(()=>{
+  if(!student||curTab>2) return;
+  const st=state[curTab], el=document.querySelector(`#sec-${curTab} .timer`);
+  if(!el) return;
+  const done=sumSteps(rec[curTab]);
+  if(st.done){el.textContent=`걸린 시간 ${fmt(rec[curTab].total)}`;return}
+  const cur=st.t0&&!st.stepDone?(now()-st.t0)/1000:0;
+  el.textContent=`걸린 시간 ${fmt(done+cur)}`;
+},500);
+
+document.getElementById('testConn').onclick=async()=>{
+  const out=document.getElementById('testOut');
+  if(!SHEET_URL){out.textContent='✗ index.html에 SHEET_URL이 비어 있어요. 웹 앱 URL을 넣어 주세요.';return}
+  out.textContent='확인하고 있어요…';
+  let lines=['주소: '+SHEET_URL.slice(0,60)+'…'];
+  try{ const r=await fetch(SHEET_URL); const t=await r.text(); lines.push(/"ok":true/.test(t)?'✓ 1. 구글 스크립트 접속 성공':'✗ 1. 접속은 됐지만 예상과 다른 응답이에요. 액세스 권한을 "모든 사용자"로 바꾸고 새 버전으로 배포하세요.') }
+  catch(e){ lines.push('✗ 1. 구글 스크립트에 접속하지 못했어요. 액세스 권한이 "모든 사용자"인지, URL이 /exec로 끝나는지 확인하세요.'); out.textContent=lines.join('\n'); return }
+  try{ const res=await api({action:'save',aid:'connection-test',sid:'연결테스트',name:'연결테스트',startedAt:new Date().toISOString(),updatedAt:new Date().toISOString(),cases:[]});
+    lines.push(res.ok?'✓ 2. 시트에 쓰기 성공 (시트에 "연결테스트" 줄이 생겼어요. 지워도 돼요)':'✗ 2. 시트에 쓰지 못했어요. '+errText(res)) }
+  catch(e){ lines.push('✗ 2. '+e.message) }
+  out.textContent=lines.join('\n');
+};
+
+/* teacher mode */
+if(TEACHER){
+  document.querySelector('.tab[data-t="4"]').hidden=false;
+  document.getElementById('myPanel').hidden=false;
+  document.getElementById('dlMine').hidden=false;
+  document.getElementById('dlAll').hidden=false;
+}
+
+cases.forEach((_,i)=>renderCase(i));
+updateMinis();
+setSync();
+})();
+</script>
+</body>
+</html>
