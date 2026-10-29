@@ -3,6 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2542D">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="원 서킷">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>원의 성질 서킷</title>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
@@ -178,7 +186,7 @@ button{font:inherit;color:inherit}
 .pbar i{display:block;height:100%;background:var(--accent)}
 @media (max-width:860px){ .tgrid{grid-template-columns:1fr} .tsum{grid-template-columns:repeat(3,1fr)} .custom{grid-template-columns:1fr;justify-items:center} }
 .fld{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:800;color:var(--muted);margin-bottom:12px}
-.fld textarea,.fld input,#tPin{font:inherit;font-size:14px;color:var(--ink);background:var(--soft);border:2px solid var(--line);border-radius:12px;padding:10px;width:100%}
+.fld textarea,.fld input,#tPin{font:inherit;font-size:16px;color:var(--ink);background:var(--soft);border:2px solid var(--line);border-radius:12px;padding:10px;width:100%}
 .fld textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical}
 .steps{margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.7;color:var(--muted);word-break:keep-all}
 #tMain[hidden],#tLock[hidden]{display:none}
@@ -252,20 +260,110 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
 .review .ans strong{color:var(--good)}
 .review .rt{color:var(--muted);font-size:14px;margin-top:4px}
 
+#app{height:100%;height:100dvh}
+.overlay{height:100dvh}
+button{touch-action:manipulation}
+.iconbtn .ic{display:none}
+.hint{font-size:13px;color:var(--muted);margin:10px 0 0;text-align:center;word-break:keep-all}
+.hint[hidden],#bInstall[hidden]{display:none}
+.touchhint{display:none}
+@media (pointer:coarse){ .touchhint{display:block} .keys.fine{display:none} }
+.hud{flex-wrap:nowrap}
+.hud .stat{flex:none}
+
+/* 좁은 화면, 낮은 화면 공통: 상단 막대를 한 줄로 */
+@media (max-width:860px), (max-height:560px){
+  .hud{gap:12px;padding:6px 10px}
+  .brand{font-size:18px}
+  .brand span{display:none}
+  .stat{min-width:0}
+  .stat small{font-size:10px}
+  .stat b{font-size:20px}
+  .iconbtn{padding:6px 9px;font-size:17px;line-height:1}
+  .iconbtn .lbl{display:none}
+  .iconbtn .ic{display:inline}
+  .rank{font-size:12px;min-width:150px;padding:8px 10px}
+}
+@media (max-width:420px){
+  .hud{gap:9px;padding:5px 8px}
+  .stat-right{display:none}
+  .stat b{font-size:18px}
+  .brand svg{width:24px;height:24px}
+  .iconbtn{padding:5px 7px}
+}
+
+/* 세로 화면 (휴대폰, 세로 태블릿): 문제 카드 위, 도로 아래 */
 @media (max-width:860px){
   .stage{grid-template-columns:1fr;grid-template-rows:auto 1fr}
-  .qcard{border-right:0;border-bottom:2px solid var(--line);max-height:44vh;padding:12px 14px;gap:8px}
-  .qbody{flex-direction:row;align-items:flex-start}
-  .qtext{font-size:16px;flex:1}
-  .fig{width:128px;flex:none}
+  .qcard{border-right:0;border-bottom:2px solid var(--line);max-height:46vh;max-height:46dvh;padding:10px 12px;gap:8px}
+  .qhead .lvtag{font-size:15px;padding:2px 10px}
+  .qbody{flex-direction:row;align-items:flex-start;gap:8px}
+  .qtext{font-size:15px;line-height:1.5;flex:1}
+  .fig{width:118px;flex:none}
+  .chips{gap:6px}
+  .chip{padding:5px 2px;border-width:2px;border-radius:12px}
+  .chip span{font-size:11px}
   .chip b{font-size:17px}
-  .hud{gap:14px;padding:6px 12px}
-  .brand span{display:none}
-  .stat b{font-size:22px}
+  .tip{font-size:13px;padding:7px 10px}
   .rules{grid-template-columns:1fr}
   .levels{grid-template-columns:1fr}
   .who{grid-template-columns:1fr 1fr}
-  .rank{font-size:12px;min-width:150px;padding:8px 10px}
+  .who label:last-child{grid-column:1/-1}
+}
+@media (min-width:600px) and (max-width:860px){
+  .qtext{font-size:17px}
+  .fig{width:150px}
+  .chip b{font-size:20px}
+}
+
+/* 가로로 낮은 화면 (휴대폰 가로): 문제 카드 왼쪽, 도로 오른쪽 */
+@media (orientation:landscape) and (max-height:560px){
+  .stage{grid-template-columns:minmax(230px,36%) 1fr;grid-template-rows:1fr}
+  .qcard{max-height:none;border-bottom:0;border-right:2px solid var(--line);padding:8px 10px;gap:6px}
+  .qhead .qsec{display:none}
+  .qhead .lvtag{font-size:13px;padding:1px 8px}
+  .qno{font-size:12px}
+  .qbody{flex-direction:row;align-items:flex-start;gap:6px}
+  .qtext{font-size:13.5px;line-height:1.45;flex:1}
+  .fig{width:92px;flex:none}
+  .chips{gap:5px}
+  .chip{padding:3px 2px;border-width:2px;border-radius:10px}
+  .chip span{font-size:10px}
+  .chip b{font-size:15px}
+  .tip{font-size:12px;padding:6px 8px;line-height:1.45}
+  .idle{font-size:13px}
+  .pads{bottom:8px;padding:0 10px;justify-content:flex-start;gap:10px}
+  .boostpad{margin-left:auto}
+  .pad{width:52px;height:52px;font-size:20px}
+  .boostpad{width:84px;height:52px;font-size:12px}
+  .boostpad span{font-size:17px}
+  .rank{font-size:11px;min-width:130px;padding:6px 8px;top:6px;left:6px}
+  .rank li b{font-size:13px}
+  .toast{font-size:clamp(24px,5vw,40px);top:8%}
+  .sheet{padding:16px 18px}
+  .title{font-size:30px}
+}
+
+/* 휴대폰 시작 화면 */
+@media (max-width:560px){
+  .overlay{padding:calc(8px + env(safe-area-inset-top,0px)) 8px calc(8px + env(safe-area-inset-bottom,0px))}
+  .sheet{padding:18px 16px;border-radius:18px}
+  .title{font-size:34px}
+  .lead{font-size:15px;margin-bottom:12px}
+  .rules{font-size:13px;gap:5px;margin-bottom:14px}
+  .solo{grid-template-columns:1fr}
+  .stats{gap:6px} .stats b{font-size:20px}
+  .bigscore{font-size:56px}
+  .fld textarea,.fld input,#tPin{font-size:16px}
+  .tdash{padding:calc(10px + env(safe-area-inset-top,0px)) 10px calc(16px + env(safe-area-inset-bottom,0px))}
+  .thead h1{font-size:26px}
+  .tbar{padding:10px;gap:8px}
+  .tbtn{padding:9px 12px;font-size:14px}
+  .tbtn.primary{font-size:18px;padding:8px 16px}
+  .ttime b{font-size:32px}
+  .tsum{grid-template-columns:repeat(3,1fr);gap:6px}
+  .tsum b{font-size:24px}
+  .tmap svg{max-width:340px;margin:0 auto}
 }
 @media (prefers-reduced-motion:reduce){.toast.show{animation-duration:.01s;opacity:1}}
 </style>
@@ -280,10 +378,10 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
     <div class="stat"><small>남은 시간</small><b id="hTime" class="disp">3:00</b></div>
     <div class="stat"><small>점수</small><b id="hScore" class="disp">0</b></div>
     <div class="stat"><small>연속 정답</small><b id="hCombo" class="disp">0</b></div>
-    <div class="stat"><small>맞힌 문제</small><b id="hRight" class="disp">0</b></div>
+    <div class="stat stat-right"><small>맞힌 문제</small><b id="hRight" class="disp">0</b></div>
     <div class="stat"><small>부스터</small><b id="hBoost" class="disp">○○○</b></div>
-    <button class="iconbtn" id="bSound" aria-pressed="true">소리 켜짐</button>
-    <button class="iconbtn" id="bPause">일시정지</button>
+    <button class="iconbtn" id="bSound" aria-pressed="true" aria-label="소리 켜짐"><span class="ic" aria-hidden="true">🔊</span><span class="lbl">소리 켜짐</span></button>
+    <button class="iconbtn" id="bPause" aria-label="일시정지"><span class="ic" aria-hidden="true">⏸</span><span class="lbl">일시정지</span></button>
   </header>
   <main class="stage">
     <aside class="qcard" id="card" aria-live="polite">
@@ -331,7 +429,8 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
       <p id="netMsg">실시간 서버에 연결하는 중이에요.</p>
       <div class="peers" id="lobbyPeers"></div>
     </div>
-    <p class="keys">조작: <kbd>←</kbd> <kbd>→</kbd> 또는 <kbd>A</kbd> <kbd>D</kbd> 키로 차선 이동, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 키로 차선 바로 선택, <kbd>Space</kbd> 키로 부스터 사용. 태블릿은 화면 왼쪽이나 오른쪽을 터치하세요.</p>
+    <p class="keys touchhint">조작: 화면 왼쪽이나 오른쪽을 터치하거나 옆으로 밀어서 차선을 바꾸고, 부스터 버튼을 누르면 3초 동안 빨라져요.</p>
+    <p class="keys fine">조작: <kbd>←</kbd> <kbd>→</kbd> 또는 <kbd>A</kbd> <kbd>D</kbd> 키로 차선 이동, <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 키로 차선 바로 선택, <kbd>Space</kbd> 키로 부스터 사용. 태블릿은 화면 왼쪽이나 오른쪽을 터치하세요.</p>
     <p class="err" id="formErr"></p>
     <p class="wait" id="waitMsg" hidden>준비 완료! 선생님이 출발 버튼을 누르면 다 같이 출발해요.</p>
     <button class="go disp" id="bReady">준비 완료</button>
@@ -340,6 +439,8 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
       <div class="seg" id="soloLv" role="group" aria-label="연습 난이도"><button data-mode="e" aria-pressed="false">하</button><button data-mode="m" aria-pressed="false">중</button><button data-mode="mix" aria-pressed="true">하 → 중</button></div>
       <button class="ghost" id="bSolo">혼자 연습하기</button>
     </div>
+    <button class="ghost" id="bInstall" hidden style="margin-top:12px">📲 앱으로 설치하기</button>
+    <p class="hint" id="iosHint" hidden>아이폰, 아이패드는 사파리의 공유 버튼에서 홈 화면에 추가를 누르면 앱처럼 쓸 수 있어요.</p>
     <button class="tlink" id="bTeacher">교사 대시보드</button>
     <p class="best" id="bestStart"></p>
   </div>
@@ -699,6 +800,7 @@ function resize(){
   ctx.setTransform(DPR,0,0,DPR,0,0);
 }
 window.addEventListener('resize', resize);
+if(window.ResizeObserver) new ResizeObserver(()=>resize()).observe(track);
 
 function newState(m){
   return {mode:m, phase:'idle', t:0, cd:0, score:0, combo:0, bestCombo:0, right:0, asked:0, answered:0, wrong:[],
@@ -1183,7 +1285,7 @@ $('#bResume').addEventListener('click', resumeGame);
 $('#bQuit').addEventListener('click', toMenu);
 $('#bRestart2').addEventListener('click', startSolo);
 $('#bPause').addEventListener('click', ()=>{ if(st.phase==='paused') resumeGame(); else pauseGame(); });
-$('#bSound').addEventListener('click', e=>{ soundOn=!soundOn; e.currentTarget.textContent = soundOn?'소리 켜짐':'소리 꺼짐'; e.currentTarget.setAttribute('aria-pressed', String(soundOn)); });
+$('#bSound').addEventListener('click', e=>{ soundOn=!soundOn; const b=e.currentTarget; b.querySelector('.ic').textContent = soundOn?'🔊':'🔇'; b.querySelector('.lbl').textContent = soundOn?'소리 켜짐':'소리 꺼짐'; b.setAttribute('aria-label', soundOn?'소리 켜짐':'소리 꺼짐'); b.setAttribute('aria-pressed', String(soundOn)); });
 document.addEventListener('visibilitychange', ()=>{ if(document.hidden) pauseGame(); });
 
 // ---- 함께 달리기 (Firebase Realtime Database) ----
@@ -1306,13 +1408,16 @@ function onControl(){
   if(c.state === 'running' && c.round && +c.startAt){
     const endAt = +c.startAt + TOTAL*1000, now = serverNow();
     const round = String(c.round).slice(0,24);
-    if(st.phase === 'idle' && ready && readForm().full && round !== lastRound && endAt - now > 10000){
-      const m = ['e','m','mix'].includes(c.mode) ? c.mode : 'mix';
-      const until = (+c.startAt - now)/1000;
-      if(until > 0.3) startGame(m, TOTAL, round, Math.min(6, until));
-      else startGame(m, Math.max(10, (endAt - now)/1000 - 3), round, 3);
+    const m = ['e','m','mix'].includes(c.mode) ? c.mode : 'mix';
+    const until = (+c.startAt - now)/1000;
+    const join = () => { if(until > 0.3) startGame(m, TOTAL, round, Math.min(6, until)); else startGame(m, Math.max(10, (endAt - now)/1000 - 3), round, 3); };
+    const practicing = !st.round && (racing || st.phase === 'end');
+    if(round !== lastRound && endAt - now > 10000){
+      if(st.phase === 'idle' && ready && readForm().full) join();
+      else if(practicing && readForm().full){ join(); setTimeout(()=>toast('레이스 시작! 연습을 마치고 합류했어요', 'good'), 50); }
+      else if(practicing){ toMenu(); $('#formErr').textContent = '선생님이 레이스를 시작했어요! 학번과 이름을 적고 준비 완료를 누르면 바로 합류해요.'; }
+      else if(st.phase === 'idle' && !ready && !teacherView){ $('#formErr').textContent = '선생님이 레이스를 시작했어요! 학번과 이름을 확인하고 준비 완료를 누르면 바로 합류해요.'; }
     }
-    else if(!st.round && racing && st.soloNote !== c.round){ st.soloNote = c.round; toast('선생님이 레이스를 시작했어요', 'good'); }
   }else if(racing && st.round){
     countEl.hidden = true; endGame(); toast('레이스 종료', 'bad');
   }
@@ -1380,7 +1485,8 @@ function renderTeacher(){
   const cnt = {all:list.length, named:list.filter(g=>g.nm).length, ready:list.filter(g=>g.st==='lobby'&&g.rd&&g.nm).length, run:list.filter(g=>g.st==='race').length, done:list.filter(g=>g.st==='done').length};
   $('#tsAll').textContent = cnt.all; $('#tsNamed').textContent = cnt.named; $('#tsReady').textContent = cnt.ready; $('#tsRun').textContent = cnt.run; $('#tsDone').textContent = cnt.done;
   const ok = !!room && fbConnected;
-  $('#tStart').disabled = !ok || running || cnt.ready === 0;
+  const solo = list.filter(g=>g.st==='solo').length, notReady = list.filter(g=>g.st==='lobby' && !(g.rd && g.nm)).length;
+  $('#tStart').disabled = !ok || running || cnt.all === 0;
   $('#tStop').disabled = !ok || !running;
   $('#tReset').disabled = !ok; $('#tClear').disabled = !ok;
   document.querySelectorAll('#tLevels button').forEach(b=>b.disabled = running);
@@ -1390,8 +1496,13 @@ function renderTeacher(){
   if(!fdb) msg = '실시간 서버가 설정되지 않았어요. 처음 설정에서 Firebase를 연결해 주세요.';
   else if(!fbConnected) msg = 'Firebase 서버에 연결하는 중이에요.';
   else if(running) msg = '레이스 진행 중이에요. 늦게 준비 완료를 누른 학생도 남은 시간 동안 함께 달려요.';
-  else if(cnt.ready === 0) msg = `학생들이 경기방 ${roomNo()}번을 적고 준비 완료를 누르면 레이스를 시작할 수 있어요.`;
-  else msg = `${cnt.ready}명이 준비를 마쳤어요. 준비 완료인 학생만 출발해요.`;
+  else if(cnt.all === 0) msg = `학생들이 경기방 ${roomNo()}번에 들어오면 레이스를 시작할 수 있어요.`;
+  else {
+    msg = `준비 완료 ${cnt.ready}명`;
+    if(solo) msg += `, 혼자 연습 중 ${solo}명`;
+    if(notReady) msg += `, 준비 전 ${notReady}명`;
+    msg += '. 시작하면 준비 완료한 학생과 연습 중인 학생이 함께 출발하고, 준비 전 학생은 준비 완료를 누르는 즉시 합류해요.';
+  }
   $('#tMsg').textContent = msg;
 
   const racing = list.some(g=>g.st==='race' || g.st==='done');
@@ -1631,7 +1742,16 @@ function loop(ts){
 }
 resize(); showBestStart(); updateHud();
 requestAnimationFrame(loop);
-if(!teacherView) $('#bReady').focus();
+if(!teacherView && matchMedia('(pointer:fine)').matches) $('#bReady').focus({preventScroll:true});
+// ---- 앱 설치 ----
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; $('#bInstall').hidden = false; });
+window.addEventListener('appinstalled', ()=>{ installEvt = null; $('#bInstall').hidden = true; });
+$('#bInstall').addEventListener('click', async ()=>{ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt = null; $('#bInstall').hidden = true; });
+{ const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if(ios && !standalone) $('#iosHint').hidden = false; }
+if('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
 </body>
