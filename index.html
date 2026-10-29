@@ -182,6 +182,34 @@ button{font:inherit;color:inherit}
 .fld textarea{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;resize:vertical}
 .steps{margin:0 0 16px;padding-left:20px;font-size:14px;line-height:1.7;color:var(--muted);word-break:keep-all}
 #tMain[hidden],#tLock[hidden]{display:none}
+.solo{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:2px dashed var(--line)}
+.solo .pk{grid-column:1/-1;margin:0}
+.solo .ghost{padding:10px 16px;font-size:16px}
+.tsorts{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.tsorts h2{margin:0 auto 0 0}
+.seg.sm button{padding:6px 11px;font-size:13px}
+#tBody tr[data-k]{cursor:pointer}
+#tBody tr[data-k]:hover td{background:var(--soft)}
+#tBody tr.sel td{background:color-mix(in srgb,var(--blue) 12%,var(--panel))}
+.twrong{margin-top:14px}
+.twrong table{border-collapse:collapse;width:100%;font-size:15px}
+.twrong th,.twrong td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line)}
+.twrong th{font-size:13px;color:var(--muted);white-space:nowrap}
+.twrong tbody tr{cursor:pointer}
+.twrong tbody tr:hover td{background:var(--soft)}
+.twrong tr.sel td{background:color-mix(in srgb,var(--accent) 10%,var(--panel))}
+.twrong .lvs{font-size:12px;font-weight:800;border-radius:6px;padding:1px 6px;margin-right:6px;background:var(--ink);color:var(--panel)}
+.twrong .lvs.m{background:var(--accent);color:#fff}
+.rbar{width:90px;height:10px;border-radius:5px;background:var(--soft);display:inline-block;vertical-align:middle;margin-right:8px;overflow:hidden;border:1px solid var(--line)}
+.rbar i{display:block;height:100%;background:var(--bad)}
+.tsumline{color:var(--muted);font-weight:700;font-size:14px;margin:0 0 8px}
+.exlist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+.exlist li{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;line-height:1.55;word-break:keep-all}
+.exlist .who{font-weight:800;margin-right:8px}
+.exlist .pick{color:var(--bad);font-weight:800}
+.exlist .right{color:var(--good);font-weight:800}
+.exhead{display:flex;align-items:center;gap:10px;margin-top:14px}
+.exhead h3{margin:0 auto 0 0;font-size:16px}
 .tlink{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:13px;margin-top:12px;display:block;margin-left:auto;margin-right:auto}
 .toast{position:absolute;top:14%;left:50%;transform:translate(-50%,0);font-size:clamp(30px,5vw,60px);color:#fff;white-space:nowrap;opacity:0;pointer-events:none;text-shadow:0 3px 0 #1B2140,0 0 18px rgba(0,0,0,.35)}
 .toast.good{color:#FFE45C}
@@ -307,7 +335,11 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
     <p class="err" id="formErr"></p>
     <p class="wait" id="waitMsg" hidden>준비 완료! 선생님이 출발 버튼을 누르면 다 같이 출발해요.</p>
     <button class="go disp" id="bReady">준비 완료</button>
-    <button class="ghost" id="bSolo" hidden style="margin-top:10px">혼자 연습하기</button>
+    <div class="solo">
+      <p class="pk">선생님 출발 신호 없이 혼자 연습할 수도 있어요</p>
+      <div class="seg" id="soloLv" role="group" aria-label="연습 난이도"><button data-mode="e" aria-pressed="false">하</button><button data-mode="m" aria-pressed="false">중</button><button data-mode="mix" aria-pressed="true">하 → 중</button></div>
+      <button class="ghost" id="bSolo">혼자 연습하기</button>
+    </div>
     <button class="tlink" id="bTeacher">교사 대시보드</button>
     <p class="best" id="bestStart"></p>
   </div>
@@ -395,8 +427,23 @@ kbd{font-family:inherit;font-weight:800;border:2px solid var(--line);border-bott
   </div>
   <div class="tgrid">
     <section class="tpanel tmap"><h2>실시간 레이스 위치</h2><svg id="tMap" viewBox="0 0 320 320" role="img" aria-label="원형 서킷 위 학생 위치"></svg></section>
-    <section class="tpanel ttable"><h2 id="tTableTitle">학생 목록</h2><table><thead><tr><th>순위</th><th>카트</th><th>학번</th><th>이름</th><th>상태</th><th>위치</th><th>점수</th><th>맞힌 문제</th></tr></thead><tbody id="tBody"></tbody></table></section>
+    <section class="tpanel ttable">
+      <div class="tsorts"><h2 id="tTableTitle">학생 목록</h2>
+        <div class="seg sm" id="tSort" role="group" aria-label="정렬"><button data-s="sid" aria-pressed="true">학번순</button><button data-s="score" aria-pressed="false">점수순</button><button data-s="name" aria-pressed="false">이름순</button></div>
+      </div>
+      <table><thead><tr><th>순위</th><th>카트</th><th>학번</th><th>이름</th><th>상태</th><th>위치</th><th>점수</th><th>맞힌 문제</th><th>틀린 문제</th></tr></thead><tbody id="tBody"></tbody></table>
+      <p class="tnote" style="margin:8px 6px 0;color:var(--muted);font-size:13px">학생 줄을 누르면 그 학생이 틀린 문제를 볼 수 있어요.</p>
+    </section>
   </div>
+  <section class="tpanel twrong" id="tWrong">
+    <div class="tsorts"><h2>많이 틀린 문제</h2>
+      <div class="seg sm" id="tScope" role="group" aria-label="집계 범위"><button data-s="round" aria-pressed="true">이번 레이스</button><button data-s="all" aria-pressed="false">이 경기방 전체 기록</button></div>
+      <button class="tbtn" id="tWrongClear" style="padding:7px 12px;font-size:13px">오답 기록 지우기</button>
+    </div>
+    <p class="tsumline" id="tWrongSum"></p>
+    <div style="overflow-x:auto"><table><thead><tr><th>문제 유형</th><th>단원</th><th>푼 횟수</th><th>틀린 횟수</th><th>오답률</th><th>가장 많이 고른 오답</th></tr></thead><tbody id="tWrongBody"></tbody></table></div>
+    <div id="tDetail"></div>
+  </section>
   </div>
 </div>
 
@@ -630,7 +677,7 @@ const GEN = {
 // ================== GEN-END ==================
 if(typeof window === 'undefined'){ globalThis.__GEN = GEN; return; }
 // ===== 설정 (처음 설정 화면에서 자동으로 채워져요) =====
-const FIREBASE_CONFIG = {"apiKey": "AIzaSyA7XC8q_-oT6n75d7OO3mLNN-F_Dp8ZWMw", "authDomain": "one-race-81489.firebaseapp.com", "databaseURL": "https://one-race-81489-default-rtdb.asia-southeast1.firebasedatabase.app", "projectId": "one-race-81489", "storageBucket": "one-race-81489.firebasestorage.app", "messagingSenderId": "585326615230", "appId": "1:585326615230:web:0d581e14ee9260da1bdcef"}; /*__CFG__*/
+const FIREBASE_CONFIG = {"apiKey":"AIzaSyA7XC8q_-oT6n75d7OO3mLNN-F_Dp8ZWMw","authDomain":"one-race-81489.firebaseapp.com","databaseURL":"https://one-race-81489-default-rtdb.asia-southeast1.firebasedatabase.app","projectId":"one-race-81489","storageBucket":"one-race-81489.firebasestorage.app","messagingSenderId":"585326615230","appId":"1:585326615230:web:0d581e14ee9260da1bdcef"}; /*__CFG__*/
 const TEACHER_PIN_HASH = '08d8bab5849b3415'; /*__PIN__*/
 const SRC_HTML = '<!doctype html>\n' + document.documentElement.outerHTML;
 
@@ -690,7 +737,7 @@ function pickLevel(){
 function drawQ(lv){
   const bag = st.bags[lv];
   if(!bag.length){ bag.push(...shuffle(GEN[lv].map((_,i)=>i))); }
-  return GEN[lv][bag.pop()]();
+  const g = GEN[lv][bag.pop()]; const q = g(); q.type = g.name; return q;
 }
 function spawnQuestion(){
   const lv = pickLevel();
@@ -730,6 +777,7 @@ function toast(text, cls){
 function resolve(q, chosenIdx){
   const ok = q.opts[chosenIdx] === q.ans;
   st.answered++;
+  recordAnswer(q, chosenIdx, ok);
   st.objs.forEach(o=>{ if(o.gid===q.gid) o.hit = (o.lane===chosenIdx-1) ? (ok?'good':'bad') : 'pass'; });
   if(ok){
     st.combo++; st.right++; st.bestCombo = Math.max(st.bestCombo, st.combo);
@@ -1044,8 +1092,8 @@ function setReady(v){
 // ---- 경기 진행 ----
 function startGame(m='mix', left=TOTAL, round=0, cd=3){
   const f = readForm();
-  if(!f.full){ $('#formErr').textContent = '학번과 이름을 먼저 적어 주세요.'; $('#ovStart').hidden=false; $('#ovEnd').hidden=true; return; }
-  myName = f.full; saveWho();
+  if(!f.full && round){ $('#formErr').textContent = '학번과 이름을 먼저 적어 주세요.'; $('#ovStart').hidden=false; $('#ovEnd').hidden=true; return; }
+  myName = f.full || '연습 중'; saveWho();
   resize();
   st = newState(m);
   st.t = Math.max(0, TOTAL - left); st.round = round; lastRound = round;
@@ -1058,7 +1106,11 @@ function startGame(m='mix', left=TOTAL, round=0, cd=3){
   updateHud();
   pushPresence(true);
 }
-const startSolo = () => startGame('mix', TOTAL, 0);
+let soloMode = 'mix';
+function startSolo(){ if(ready) setReady(false); startGame(soloMode, TOTAL, 0); }
+document.querySelectorAll('#soloLv button').forEach(b=>b.addEventListener('click', ()=>{
+  soloMode = b.dataset.mode; document.querySelectorAll('#soloLv button').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+}));
 function endGame(){
   st.phase = 'end';
   pushPresence(true);
@@ -1078,7 +1130,7 @@ function endGame(){
     list.innerHTML = st.wrong.map(w=>`<li><div>${w.q.text}</div><div class="ans">내 답 <em>${w.mine}</em>, 정답 <strong>${w.q.ans}</strong></div><div class="rt">${w.q.tip}</div></li>`).join('');
   }else{ $('#reviewWrap').hidden = true; list.innerHTML=''; }
   $('#bestEnd').textContent = isNew ? `${MODE_NAME[st.mode]} 최고 점수를 새로 세웠어요!` : `${MODE_NAME[st.mode]} 최고 점수: ${Math.max(prev,st.score)}점`;
-  $('#bMenu').hidden = !!room;
+  $('#bMenu').hidden = !!st.round;
   $('#ovEnd').hidden = false;
   beep([523,659,784,1047],.13,'square',.05);
   card.innerHTML = `<p class="idle">경기가 끝났어요. 결과 화면에서 틀린 문제를 확인하세요.</p>`;
@@ -1145,7 +1197,8 @@ function clean(t, n=20){ return String(t==null?'':t).replace(/[\u0000-\u001f\u00
 const esc = t => String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function hashPin(t){ let h=0x811c9dc5; const str='circle-circuit|'+t; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,0x01000193)>>>0; } let h2=h; for(let i=str.length-1;i>=0;i--){ h2^=str.charCodeAt(i)*31; h2=Math.imul(h2,0x5bd1e995)>>>0; } return h.toString(16).padStart(8,'0')+h2.toString(16).padStart(8,'0'); }
 function myPresence(){
-  const ph = (st.phase==='play'||st.phase==='count'||st.phase==='paused') ? 'race' : st.phase==='end' ? 'done' : 'lobby';
+  let ph = (st.phase==='play'||st.phase==='count'||st.phase==='paused') ? 'race' : st.phase==='end' ? 'done' : 'lobby';
+  if(ph !== 'lobby' && !st.round) ph = 'solo';
   const f = readForm();
   return {sid:f.id, sn:f.nm, nm:(ph==='lobby' ? f.full : myName) || '', kc:myKc, hc:myHc, rd: ph==='lobby' && ready, st:ph,
           ln: ph==='race' ? Math.round(st.laneF*100)/100 : 0, d: ph==='lobby' ? 0 : Math.round(st.dist), sc: st.score, rt: st.right, an: st.answered,
@@ -1161,8 +1214,9 @@ function pushPresence(force){
   data.ts = firebase.database.ServerValue.TIMESTAMP;
   myRef.set(data).catch(()=>{});
 }
+let answersQ = null, answers = {};
 function detach(){
-  if(playersRef) playersRef.off(); if(ctrlRef) ctrlRef.off();
+  if(playersRef) playersRef.off(); if(ctrlRef) ctrlRef.off(); if(answersQ){ answersQ.off(); answersQ = null; } answers = {};
   if(myRef){ try{ myRef.onDisconnect().cancel(); }catch(e){} myRef.remove().catch(()=>{}); }
   playersRef = ctrlRef = myRef = null; room = null;
 }
@@ -1178,6 +1232,7 @@ function joinRoom(){
   playersRef.on('value', snap => { players = snap.val() || {}; syncGhosts(); renderLobby(); renderRank(); if(teacherView) renderTeacher(); },
     () => { setNet('데이터베이스를 읽을 수 없어요. Firebase 데이터베이스 규칙을 확인해 주세요.'); });
   ctrlRef.on('value', snap => { ctrl = snap.val() || {state:'lobby'}; onControl(); if(teacherView) renderTeacher(); });
+  if(teacherView){ answersQ = room.child('answers').limitToLast(4000); answersQ.on('value', snap => { answers = snap.val() || {}; if(teacherView) renderTeacher(); }); }
   setNet(`경기방 ${roomNo()}번에 들어왔어요. 같은 번호를 적은 친구들과 함께 달려요.`);
 }
 function setNet(t){ $('#netMsg').textContent = t; }
@@ -1190,7 +1245,7 @@ function syncGhosts(){
     const g = ghosts[k] || (ghosts[k] = {peer:k, d:+pr.d||0, td:-1, at:performance.now()});
     g.sid = clean(pr.sid, 8); g.sn = clean(pr.sn, 10); g.nm = clean(pr.nm);
     g.kc = Math.max(0, Math.min(KART.length-1, pr.kc|0)); g.hc = Math.max(0, Math.min(HELM.length-1, pr.hc|0));
-    g.rd = !!pr.rd; g.st = ['lobby','race','done'].includes(pr.st) ? pr.st : 'lobby';
+    g.rd = !!pr.rd; g.st = ['lobby','race','done','solo'].includes(pr.st) ? pr.st : 'lobby';
     const nd = Math.max(0, +pr.d || 0); if(nd !== g.td){ g.td = nd; g.at = performance.now(); }
     g.ln = Math.max(-1, Math.min(1, +pr.ln || 0)); g.sc = +pr.sc || 0;
     g.rt = +pr.rt || 0; g.an = +pr.an || 0; g.bo = !!pr.bo; g.sp = !!pr.sp; g.left = +pr.left || 0;
@@ -1209,14 +1264,14 @@ function updateGhosts(dt){
 function leaderDist(){ let m = null; for(const g of Object.values(ghosts)) if(g.st==='race' && (m==null || g.d>m)) m = g.d; return m; }
 function standings(){
   const list = Object.values(ghosts).filter(g => (g.st==='race' || g.st==='done') && g.nm).map(g => ({nm:g.nm, sc:g.sc, rt:g.rt, an:g.an, done:g.st==='done', me:false}));
-  if((st.phase==='play' || st.phase==='count' || st.phase==='paused' || st.phase==='end') && myName) list.push({nm:myName, sc:st.score, rt:st.right, an:st.answered, done:st.phase==='end', me:true});
+  if((st.phase==='play' || st.phase==='count' || st.phase==='paused' || st.phase==='end') && myName && st.round) list.push({nm:myName, sc:st.score, rt:st.right, an:st.answered, done:st.phase==='end', me:true});
   return list.sort((a,b)=> b.sc - a.sc || b.rt - a.rt);
 }
 function renderRank(){
   const box = $('#rank');
   const list = standings();
   const racing = st.phase==='play' || st.phase==='count' || st.phase==='paused' || st.phase==='end';
-  if(!room || list.length < 2 || !racing || teacherView){ box.hidden = true; return; }
+  if(!room || list.length < 2 || !racing || teacherView || !st.round){ box.hidden = true; return; }
   box.hidden = false;
   const myIdx = list.findIndex(x=>x.me);
   box.textContent = '';
@@ -1257,6 +1312,7 @@ function onControl(){
       if(until > 0.3) startGame(m, TOTAL, round, Math.min(6, until));
       else startGame(m, Math.max(10, (endAt - now)/1000 - 3), round, 3);
     }
+    else if(!st.round && racing && st.soloNote !== c.round){ st.soloNote = c.round; toast('선생님이 레이스를 시작했어요', 'good'); }
   }else if(racing && st.round){
     countEl.hidden = true; endGame(); toast('레이스 종료', 'bad');
   }
@@ -1290,7 +1346,7 @@ function tRemaining(){ if(!ctrl || ctrl.state !== 'running' || !+ctrl.startAt) r
 function tWrite(p){ return p.catch(()=>{ $('#tMsg').textContent = '저장하지 못했어요. 인터넷 연결과 Firebase 규칙을 확인해 주세요.'; }); }
 $('#tStart').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.set({state:'running', round: Date.now().toString(36), mode: tMode, startAt: Math.round(serverNow() + 4000)})); });
 $('#tStop').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.update({state:'stopped'})); });
-$('#tReset').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.set({state:'lobby', reset: Date.now().toString(36)})); });
+$('#tReset').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.set({state:'lobby', reset: Date.now().toString(36), round: (ctrl && ctrl.round) || ''})); });
 $('#tClear').addEventListener('click', ()=>{ if(!playersRef) return; tWrite(playersRef.remove()); });
 $('#tBack').addEventListener('click', ()=>{ location.hash = ''; closeTeacher(); });
 $('#bTeacher').addEventListener('click', ()=>{ location.hash = 'teacher'; openTeacher(); });
@@ -1310,6 +1366,7 @@ $('#tRoom').addEventListener('change', ()=>{
 function statusOf(g){
   if(g.st==='race') return ['달리는 중','run'];
   if(g.st==='done') return ['완주','done'];
+  if(g.st==='solo') return ['혼자 연습 중',''];
   if(!g.nm) return ['이름 입력 전',''];
   if(g.rd) return ['준비 완료','ok'];
   return ['준비 전','wait'];
@@ -1338,20 +1395,29 @@ function renderTeacher(){
   $('#tMsg').textContent = msg;
 
   const racing = list.some(g=>g.st==='race' || g.st==='done');
-  const sorted = list.slice().sort(racing
-    ? (a,b)=> (b.st!=='lobby') - (a.st!=='lobby') || b.sc - a.sc || b.rt - a.rt
-    : (a,b)=> (a.sid||'zzz').localeCompare(b.sid||'zzz'));
-  $('#tTableTitle').textContent = racing ? '실시간 순위' : '학생 목록 (학번 순)';
+  const inR = g => g.st==='race' || g.st==='done';
+  const ranked = list.filter(inR).sort((a,b)=> b.sc - a.sc || b.rt - a.rt);
+  const rankOf = new Map(ranked.map((g,i)=>[g, i+1]));
+  const byKey = {
+    sid: (a,b)=> (a.sid||'~').localeCompare(b.sid||'~', 'ko', {numeric:true}) || (a.sn||'').localeCompare(b.sn||'', 'ko'),
+    name: (a,b)=> (a.sn||'~').localeCompare(b.sn||'~', 'ko') || (a.sid||'').localeCompare(b.sid||'', 'ko', {numeric:true}),
+    score: (a,b)=> inR(b) - inR(a) || b.sc - a.sc || b.rt - a.rt || (a.sid||'~').localeCompare(b.sid||'~', 'ko', {numeric:true})
+  };
+  const sorted = list.slice().sort(byKey[tSort] || byKey.sid);
+  $('#tTableTitle').textContent = racing ? '학생 목록과 순위' : '학생 목록';
+  const scoped = tAnswers();
+  const wrongBy = {};
+  for(const x of scoped) if(!x.ok){ const k = `${x.sid} ${x.sn}`; wrongBy[k] = (wrongBy[k]||0) + 1; }
   const lead = Math.max(1, ...list.map(g=>g.d||0));
   const tb = $('#tBody'); tb.textContent = '';
-  if(!sorted.length){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=8; td.className='empty'; td.textContent='아직 접속한 학생이 없어요.'; tr.appendChild(td); tb.appendChild(tr); }
-  let rank = 0;
+  if(!sorted.length){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=9; td.className='empty'; td.textContent='아직 접속한 학생이 없어요.'; tr.appendChild(td); tb.appendChild(tr); }
   for(const g of sorted){
     const tr = document.createElement('tr');
-    const inRace = g.st!=='lobby';
-    if(inRace) rank++;
+    const inRace = inR(g);
+    const key = (g.sid && g.sn) ? `${g.sid} ${g.sn}` : '';
+    if(key){ tr.dataset.k = key; if(key === tSelStudent) tr.className = 'sel'; }
     const cell = (txt, cls) => { const td=document.createElement('td'); if(cls) td.className=cls; if(txt instanceof Node) td.appendChild(txt); else td.textContent = txt; tr.appendChild(td); return td; };
-    cell(racing && inRace ? `${rank}` : '–', 'num');
+    cell(inRace ? `${rankOf.get(g)}` : '–', 'num');
     const k = document.createElement('span'); k.className='kchip'; k.style.background = (KART[g.kc]||KART[0])[0]; k.style.borderColor = (HELM[g.hc]||HELM[0])[0]; cell(k);
     cell(g.sid || '–'); cell(g.sn || '–');
     const [stt, cls] = statusOf(g); const bd=document.createElement('span'); bd.className='badge '+cls; bd.textContent=stt; cell(bd);
@@ -1361,10 +1427,103 @@ function renderTeacher(){
     } else cell('–');
     cell(inRace ? g.sc : '–', 'num');
     cell(inRace ? `${g.rt}/${g.an}` : '–');
+    cell(key && wrongBy[key] ? `${wrongBy[key]}개` : '–');
     tb.appendChild(tr);
   }
-  renderMap(sorted.filter(g=>g.st!=='lobby'));
+  renderWrong(scoped);
+  renderMap(ranked);
 }
+// ---- 오답 분석 ----
+const TYPE_LABEL = {
+  perp:'중심에서 현에 내린 수선', tanLen:'접선의 길이', insc:'원주각과 중심각', sameArc:'같은 호에 대한 원주각', semi:'반원에 대한 원주각',
+  cyclic:'내접사각형의 대각', tanChord:'접선과 현이 이루는 각', eqChord:'중심에서 같은 거리에 있는 현', conceptE:'개념 확인 (하)',
+  pyth:'현의 길이와 피타고라스 정리', tanAngle:'두 접선과 중심각', tanIso:'두 접선과 이등변삼각형', triPerim:'원에 외접하는 삼각형의 둘레',
+  quadTan:'원에 외접하는 사각형의 변', isoChord:'같은 거리의 두 현과 이등변삼각형', centralIso:'중심각과 이등변삼각형', cyclicExt:'내접사각형의 외각',
+  tanChord2:'접선과 현이 이루는 각 + 삼각형', arcRatio:'원주각과 호의 길이', conceptM:'개념 확인 (중)'
+};
+const normType = t => (t === 'conceptE2' ? 'conceptE' : (t || '기타'));
+let tSort = 'sid', tScope = 'round', tSelType = '', tSelStudent = '';
+function recordAnswer(q, idx, ok){
+  if(!room || teacherView || !fdb) return;
+  const f = readForm();
+  room.child('answers').push({rnd: st.round || 'solo', sid: f.id, sn: f.nm, ty: String(q.type||'').slice(0,20), lv: q.lv, sec: q.sec,
+    tx: q.text.replace(/<[^>]+>/g,'').slice(0,200), ans: String(q.ans).slice(0,20), mine: String(q.opts[idx]).slice(0,20), ok: !!ok,
+    ts: firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+}
+function tAnswers(){
+  const rnd = ctrl && ctrl.round;
+  const out = [];
+  for(const v of Object.values(answers)){
+    if(!v || typeof v !== 'object') continue;
+    if(tScope === 'round' && (!rnd || v.rnd !== rnd)) continue;
+    out.push({rnd: clean(v.rnd,24), sid: clean(v.sid,8), sn: clean(v.sn,10), ty: normType(clean(v.ty,20)), lv: v.lv==='m'?'m':'e', sec: clean(v.sec,20),
+      tx: clean(v.tx,200), ans: clean(v.ans,20), mine: clean(v.mine,20), ok: !!v.ok, ts: +v.ts || 0});
+  }
+  return out;
+}
+function el(tag, cls, txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+function renderWrong(list){
+  const total = list.length, wrong = list.filter(x=>!x.ok).length;
+  const scopeName = tScope === 'round' ? '이번 레이스' : '이 경기방 전체 기록';
+  $('#tWrongSum').textContent = total ? `${scopeName}: ${total}문제 풀이, 오답 ${wrong}개 (정답률 ${Math.round((total-wrong)/total*100)}%)` : `${scopeName}에는 아직 푼 문제가 없어요.`;
+  const by = {};
+  for(const x of list){
+    const o = by[x.ty] || (by[x.ty] = {t:x.ty, sec: x.ty.startsWith('concept') ? '여러 단원' : x.sec, lv:x.lv, n:0, w:0, picks:{}, ex:[]});
+    o.n++;
+    if(!x.ok){ o.w++; o.picks[x.mine] = (o.picks[x.mine]||0) + 1; o.ex.push(x); }
+  }
+  const rows = Object.values(by).sort((a,b)=> b.w - a.w || (b.w/b.n) - (a.w/a.n) || b.n - a.n);
+  const tb = $('#tWrongBody'); tb.textContent = '';
+  if(!rows.length){ const tr=el('tr'); const td=el('td','empty','레이스가 시작되면 문제 유형별 오답이 여기에 모여요.'); td.colSpan=6; td.style.textAlign='center'; td.style.color='var(--muted)'; tr.appendChild(td); tb.appendChild(tr); }
+  for(const r of rows){
+    const tr = el('tr'); tr.dataset.t = r.t; if(r.t === tSelType) tr.className = 'sel';
+    const td1 = el('td'); td1.append(el('span', 'lvs ' + r.lv, r.lv==='m'?'중':'하'), document.createTextNode(TYPE_LABEL[r.t] || r.t)); tr.appendChild(td1);
+    tr.appendChild(el('td', null, r.sec || '–'));
+    tr.appendChild(el('td', null, `${r.n}회`));
+    tr.appendChild(el('td', null, `${r.w}회`));
+    const td5 = el('td'); const bar = el('span','rbar'); const fill = el('i'); fill.style.width = Math.round(r.w/r.n*100)+'%'; bar.appendChild(fill); td5.append(bar, document.createTextNode(`${Math.round(r.w/r.n*100)}%`)); tr.appendChild(td5);
+    const top = Object.entries(r.picks).sort((a,b)=>b[1]-a[1])[0];
+    tr.appendChild(el('td', null, top ? `${top[0]} (${top[1]}회)` : '–'));
+    tb.appendChild(tr);
+  }
+  // 자세히 보기
+  const box = $('#tDetail'); box.textContent = '';
+  let title = '', items = [], extra = null;
+  if(tSelStudent){
+    items = list.filter(x => !x.ok && `${x.sid} ${x.sn}` === tSelStudent);
+    const mine = list.filter(x => `${x.sid} ${x.sn}` === tSelStudent);
+    title = `${tSelStudent} 학생이 틀린 문제 (${items.length}개 / 푼 문제 ${mine.length}개)`;
+    const cnt = {}; for(const x of items) cnt[x.ty] = (cnt[x.ty]||0) + 1;
+    const top = Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    if(top.length) extra = '자주 틀린 유형: ' + top.map(([t,c])=>`${TYPE_LABEL[t]||t} ${c}개`).join(', ');
+  }else if(tSelType && by[tSelType]){
+    items = by[tSelType].ex;
+    title = `${TYPE_LABEL[tSelType] || tSelType}: 틀린 학생과 고른 답 (${items.length}개)`;
+  }
+  if(!title) return;
+  const head = el('div','exhead'); head.appendChild(el('h3', null, title));
+  const close = el('button','tbtn','닫기'); close.style.padding='6px 12px'; close.style.fontSize='13px'; close.dataset.close='1'; head.appendChild(close);
+  box.appendChild(head);
+  if(extra) box.appendChild(el('p','tsumline',extra));
+  const ul = el('ul','exlist');
+  if(!items.length) ul.appendChild(el('li', null, '틀린 문제가 없어요.'));
+  for(const x of items.slice().sort((a,b)=>b.ts-a.ts).slice(0,40)){
+    const li = el('li');
+    li.appendChild(el('span','who', tSelStudent ? (TYPE_LABEL[x.ty]||x.ty) : `${x.sid} ${x.sn}`));
+    li.appendChild(document.createTextNode(x.tx + ' '));
+    li.appendChild(el('span','pick', `고른 답 ${x.mine}`));
+    li.appendChild(document.createTextNode(', '));
+    li.appendChild(el('span','right', `정답 ${x.ans}`));
+    ul.appendChild(li);
+  }
+  box.appendChild(ul);
+}
+$('#tBody').addEventListener('pointerdown', e=>{ const tr = e.target.closest('tr[data-k]'); if(!tr) return; tSelStudent = tSelStudent === tr.dataset.k ? '' : tr.dataset.k; tSelType = ''; renderTeacher(); if(tSelStudent) setTimeout(()=>$('#tWrong').scrollIntoView({behavior:'smooth', block:'start'}), 50); });
+$('#tWrongBody').addEventListener('pointerdown', e=>{ const tr = e.target.closest('tr[data-t]'); if(!tr) return; tSelType = tSelType === tr.dataset.t ? '' : tr.dataset.t; tSelStudent = ''; renderTeacher(); });
+$('#tDetail').addEventListener('pointerdown', e=>{ if(e.target.closest('[data-close]')){ tSelType = ''; tSelStudent = ''; renderTeacher(); } });
+document.querySelectorAll('#tSort button').forEach(b=>b.addEventListener('click', ()=>{ tSort = b.dataset.s; document.querySelectorAll('#tSort button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); renderTeacher(); }));
+document.querySelectorAll('#tScope button').forEach(b=>b.addEventListener('click', ()=>{ tScope = b.dataset.s; document.querySelectorAll('#tScope button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); renderTeacher(); }));
+$('#tWrongClear').addEventListener('click', ()=>{ if(!room) return; if(confirm(`경기방 ${roomNo()}번의 오답 기록을 모두 지울까요? 지우면 되돌릴 수 없어요.`)) tWrite(room.child('answers').remove()); });
 function renderMap(racers){
   const cx=160, cy=160, R0=98;
   let s = `<circle cx="${cx}" cy="${cy}" r="${R0}" fill="none" stroke="#6CBF5A" stroke-width="60"/>`;
