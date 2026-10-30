@@ -218,6 +218,20 @@ button{font:inherit;color:inherit}
 .exlist .right{color:var(--good);font-weight:800}
 .exhead{display:flex;align-items:center;gap:10px;margin-top:14px}
 .exhead h3{margin:0 auto 0 0;font-size:16px}
+.thist{margin-top:14px}
+.thist table{border-collapse:collapse;width:100%;font-size:15px}
+.thist th,.thist td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+.thist th{font-size:13px;color:var(--muted)}
+.thist tr.sel td{background:color-mix(in srgb,var(--blue) 12%,var(--panel))}
+.thist .acts{display:flex;gap:6px;justify-content:flex-end}
+.thist .acts button{padding:6px 10px;font-size:13px}
+.tbtn.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 40%,var(--line))}
+.hview{margin-top:14px;border-top:2px dashed var(--line);padding-top:12px}
+.hview h3{margin:0 auto 0 0;font-size:17px}
+.hview .exhead{margin-top:0;flex-wrap:wrap}
+.hview .types{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.hview .types span{background:var(--soft);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:700}
+.hview .types span b{color:var(--bad)}
 .tlink{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:13px;margin-top:12px;display:block;margin-left:auto;margin-right:auto}
 .toast{position:absolute;top:14%;left:50%;transform:translate(-50%,0);font-size:clamp(30px,5vw,60px);color:#fff;white-space:nowrap;opacity:0;pointer-events:none;text-shadow:0 3px 0 #1B2140,0 0 18px rgba(0,0,0,.35)}
 .toast.good{color:#FFE45C}
@@ -544,6 +558,14 @@ button{touch-action:manipulation}
     <p class="tsumline" id="tWrongSum"></p>
     <div style="overflow-x:auto"><table><thead><tr><th>문제 유형</th><th>단원</th><th>푼 횟수</th><th>틀린 횟수</th><th>오답률</th><th>가장 많이 고른 오답</th></tr></thead><tbody id="tWrongBody"></tbody></table></div>
     <div id="tDetail"></div>
+  </section>
+  <section class="tpanel thist" id="tHist">
+    <div class="tsorts"><h2>지난 경기 기록</h2>
+      <button class="tbtn" id="tHistClear" style="padding:7px 12px;font-size:13px">기록 모두 삭제</button>
+    </div>
+    <p class="tsumline">레이스가 끝나면 학생별 점수와 맞힌 문제가 자동으로 저장돼요. 혼자 연습한 기록은 저장되지 않아요.</p>
+    <div style="overflow-x:auto"><table><thead><tr><th>날짜와 시각</th><th>난이도</th><th>참가</th><th>평균 점수</th><th>평균 정답률</th><th>1등</th><th></th></tr></thead><tbody id="tHistBody"></tbody></table></div>
+    <div id="tHistView"></div>
   </section>
   </div>
 </div>
@@ -1216,6 +1238,7 @@ document.querySelectorAll('#soloLv button').forEach(b=>b.addEventListener('click
 function endGame(){
   st.phase = 'end';
   pushPresence(true);
+  saveResult();
   st.objs = []; st.q = null;
   updateHud();
   const prev = getBest(st.mode), isNew = st.score > prev;
@@ -1286,7 +1309,10 @@ $('#bQuit').addEventListener('click', toMenu);
 $('#bRestart2').addEventListener('click', startSolo);
 $('#bPause').addEventListener('click', ()=>{ if(st.phase==='paused') resumeGame(); else pauseGame(); });
 $('#bSound').addEventListener('click', e=>{ soundOn=!soundOn; const b=e.currentTarget; b.querySelector('.ic').textContent = soundOn?'🔊':'🔇'; b.querySelector('.lbl').textContent = soundOn?'소리 켜짐':'소리 꺼짐'; b.setAttribute('aria-label', soundOn?'소리 켜짐':'소리 꺼짐'); b.setAttribute('aria-pressed', String(soundOn)); });
-document.addEventListener('visibilitychange', ()=>{ if(document.hidden) pauseGame(); });
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) pauseGame(); pushPresence(true); });
+function leavePage(){ if(myRef){ try{ myRef.onDisconnect().cancel(); }catch(e){} myRef.remove().catch(()=>{}); } }
+window.addEventListener('pagehide', leavePage);
+window.addEventListener('pageshow', e=>{ if(e.persisted && myRef){ myRef.onDisconnect().remove(); lastSent=''; pushPresence(true); } });
 
 // ---- 함께 달리기 (Firebase Realtime Database) ----
 let CFG = FIREBASE_CONFIG, fdb = null, room = null, playersRef = null, ctrlRef = null, myRef = null;
@@ -1304,21 +1330,22 @@ function myPresence(){
   const f = readForm();
   return {sid:f.id, sn:f.nm, nm:(ph==='lobby' ? f.full : myName) || '', kc:myKc, hc:myHc, rd: ph==='lobby' && ready, st:ph,
           ln: ph==='race' ? Math.round(st.laneF*100)/100 : 0, d: ph==='lobby' ? 0 : Math.round(st.dist), sc: st.score, rt: st.right, an: st.answered,
-          bo: st.boost>0, sp: st.spin>0, rnd: st.round||'', left: Math.max(0, Math.round(TOTAL - st.t))};
+          bo: st.boost>0, sp: st.spin>0, hid: !!document.hidden, rnd: st.round||'', left: Math.max(0, Math.round(TOTAL - st.t))};
 }
 function pushPresence(force){
   if(!myRef || teacherView || !fdb) return;
   const now = performance.now();
   if(!force && now - lastPush < 250) return;
   const data = myPresence(), js = JSON.stringify(data);
-  if(!force && js === lastSent && now - lastBeat < 10000) return;
+  if(!force && js === lastSent && now - lastBeat < 5000) return;
   lastPush = now; lastSent = js; lastBeat = now;
   data.ts = firebase.database.ServerValue.TIMESTAMP;
   myRef.set(data).catch(()=>{});
 }
-let answersQ = null, answers = {};
+let answersQ = null, answers = {}, historyQ = null, history = {};
 function detach(){
   if(playersRef) playersRef.off(); if(ctrlRef) ctrlRef.off(); if(answersQ){ answersQ.off(); answersQ = null; } answers = {};
+  if(historyQ){ historyQ.off(); historyQ = null; } history = {}; tViewRec = '';
   if(myRef){ try{ myRef.onDisconnect().cancel(); }catch(e){} myRef.remove().catch(()=>{}); }
   playersRef = ctrlRef = myRef = null; room = null;
 }
@@ -1334,7 +1361,10 @@ function joinRoom(){
   playersRef.on('value', snap => { players = snap.val() || {}; syncGhosts(); renderLobby(); renderRank(); if(teacherView) renderTeacher(); },
     () => { setNet('데이터베이스를 읽을 수 없어요. Firebase 데이터베이스 규칙을 확인해 주세요.'); });
   ctrlRef.on('value', snap => { ctrl = snap.val() || {state:'lobby'}; onControl(); if(teacherView) renderTeacher(); });
-  if(teacherView){ answersQ = room.child('answers').limitToLast(4000); answersQ.on('value', snap => { answers = snap.val() || {}; if(teacherView) renderTeacher(); }); }
+  if(teacherView){
+    answersQ = room.child('answers').limitToLast(4000); answersQ.on('value', snap => { answers = snap.val() || {}; if(teacherView){ renderTeacher(); renderHistView(); } });
+    historyQ = room.child('history').limitToLast(200); historyQ.on('value', snap => { history = snap.val() || {}; renderHistory(); });
+  }
   setNet(`경기방 ${roomNo()}번에 들어왔어요. 같은 번호를 적은 친구들과 함께 달려요.`);
 }
 function setNet(t){ $('#netMsg').textContent = t; }
@@ -1342,9 +1372,12 @@ function syncGhosts(){
   const seen = {}, now = serverNow();
   for(const [k, pr] of Object.entries(players)){
     if(k === pid || !pr || typeof pr !== 'object') continue;
-    if(pr.ts && now - pr.ts > 30000) continue;
+    const age = now - (+pr.ts || 0);
+    if(age > STALE_DROP){ if(teacherView) cleanupStale(k); continue; }
+    if(age > STALE_LOST && !teacherView) continue;
     seen[k] = 1;
     const g = ghosts[k] || (ghosts[k] = {peer:k, d:+pr.d||0, td:-1, at:performance.now()});
+    g.lost = age > STALE_LOST; g.age = age; g.ts = +pr.ts || 0; g.hid = !!pr.hid;
     g.sid = clean(pr.sid, 8); g.sn = clean(pr.sn, 10); g.nm = clean(pr.nm);
     g.kc = Math.max(0, Math.min(KART.length-1, pr.kc|0)); g.hc = Math.max(0, Math.min(HELM.length-1, pr.hc|0));
     g.rd = !!pr.rd; g.st = ['lobby','race','done','solo'].includes(pr.st) ? pr.st : 'lobby';
@@ -1354,7 +1387,21 @@ function syncGhosts(){
     if(Math.abs(g.td - g.d) > 400 || g.st !== 'race') g.d = g.td;
   }
   for(const k in ghosts) if(!seen[k]) delete ghosts[k];
+  // 같은 학번과 이름으로 여러 창이 열려 있으면 가장 최근 것만 남겨요
+  const byWho = {};
+  for(const g of Object.values(ghosts)){
+    if(!g.sid || !g.sn) continue;
+    const key = g.sid + ' ' + g.sn, o = byWho[key];
+    if(!o) { byWho[key] = g; continue; }
+    const older = (o.lost && !g.lost) || (o.lost === g.lost && o.ts < g.ts) ? o : g;
+    byWho[key] = older === o ? g : o;
+    delete ghosts[older.peer];
+    if(teacherView && older.lost) cleanupStale(older.peer);
+  }
 }
+const STALE_LOST = 20000, STALE_DROP = 60000;
+const cleaned = {};
+function cleanupStale(k){ if(!playersRef || cleaned[k] && performance.now() - cleaned[k] < 15000) return; cleaned[k] = performance.now(); playersRef.child(k).remove().catch(()=>{}); }
 function updateGhosts(dt){
   const now = performance.now();
   for(const g of Object.values(ghosts)){
@@ -1449,8 +1496,15 @@ function closeTeacher(){
 const tRunning = () => ctrl && ctrl.state === 'running' && +ctrl.startAt && tRemaining() > 0;
 function tRemaining(){ if(!ctrl || ctrl.state !== 'running' || !+ctrl.startAt) return 0; return Math.max(0, Math.ceil((+ctrl.startAt + TOTAL*1000 - serverNow())/1000)); }
 function tWrite(p){ return p.catch(()=>{ $('#tMsg').textContent = '저장하지 못했어요. 인터넷 연결과 Firebase 규칙을 확인해 주세요.'; }); }
-$('#tStart').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.set({state:'running', round: Date.now().toString(36), mode: tMode, startAt: Math.round(serverNow() + 4000)})); });
-$('#tStop').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.update({state:'stopped'})); });
+let tWasRunning = '';
+$('#tStart').addEventListener('click', ()=>{
+  if(!ctrlRef) return;
+  const round = Date.now().toString(36), startAt = Math.round(serverNow() + 4000);
+  tWasRunning = round;
+  room.child('history/'+round+'/meta').set({mode: tMode, startAt, room: roomNo()}).catch(()=>{});
+  tWrite(ctrlRef.set({state:'running', round, mode: tMode, startAt}));
+});
+$('#tStop').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.update({state:'stopped'})); if(ctrl && ctrl.round) room.child('history/'+String(ctrl.round)+'/meta/stopped').set(true).catch(()=>{}); });
 $('#tReset').addEventListener('click', ()=>{ if(!ctrlRef) return; tWrite(ctrlRef.set({state:'lobby', reset: Date.now().toString(36), round: (ctrl && ctrl.round) || ''})); });
 $('#tClear').addEventListener('click', ()=>{ if(!playersRef) return; tWrite(playersRef.remove()); });
 $('#tBack').addEventListener('click', ()=>{ location.hash = ''; closeTeacher(); });
@@ -1469,8 +1523,9 @@ $('#tRoom').addEventListener('change', ()=>{
   joinRoom(); renderTeacher();
 });
 function statusOf(g){
-  if(g.st==='race') return ['달리는 중','run'];
-  if(g.st==='done') return ['완주','done'];
+  if(g.lost) return ['연결 끊김',''];
+  if(g.st==='race') return [g.hid ? '달리는 중 (화면 꺼짐)' : '달리는 중','run'];
+  if(g.st==='done') return ['완주 (결과 화면)','done'];
   if(g.st==='solo') return ['혼자 연습 중',''];
   if(!g.nm) return ['이름 입력 전',''];
   if(g.rd) return ['준비 완료','ok'];
@@ -1481,7 +1536,8 @@ function renderTeacher(){
   $('#tLock').hidden = tUnlocked; $('#tMain').hidden = !tUnlocked;
   if(!tUnlocked) return;
   const running = tRunning(), rem = tRemaining();
-  const list = Object.values(ghosts);
+  const allList = Object.values(ghosts), lostN = allList.filter(g=>g.lost).length;
+  const list = allList.filter(g=>!g.lost);
   const cnt = {all:list.length, named:list.filter(g=>g.nm).length, ready:list.filter(g=>g.st==='lobby'&&g.rd&&g.nm).length, run:list.filter(g=>g.st==='race').length, done:list.filter(g=>g.st==='done').length};
   $('#tsAll').textContent = cnt.all; $('#tsNamed').textContent = cnt.named; $('#tsReady').textContent = cnt.ready; $('#tsRun').textContent = cnt.run; $('#tsDone').textContent = cnt.done;
   const ok = !!room && fbConnected;
@@ -1503,18 +1559,21 @@ function renderTeacher(){
     if(notReady) msg += `, 준비 전 ${notReady}명`;
     msg += '. 시작하면 준비 완료한 학생과 연습 중인 학생이 함께 출발하고, 준비 전 학생은 준비 완료를 누르는 즉시 합류해요.';
   }
+  if(msg && lostN) msg += ` 연결이 끊긴 학생 ${lostN}명은 1분 안에 목록에서 자동으로 빠져요.`;
   $('#tMsg').textContent = msg;
+  // 경기가 끝나면 기록에 끝난 시각을 남겨요
+  if(ctrl && ctrl.round && room){ const rr = String(ctrl.round); if(tWasRunning === rr && !running){ tWasRunning = ''; room.child('history/'+rr+'/meta/endedAt').set(firebase.database.ServerValue.TIMESTAMP).catch(()=>{}); } if(running) tWasRunning = rr; }
 
   const racing = list.some(g=>g.st==='race' || g.st==='done');
   const inR = g => g.st==='race' || g.st==='done';
-  const ranked = list.filter(inR).sort((a,b)=> b.sc - a.sc || b.rt - a.rt);
+  const ranked = list.filter(g=>inR(g)).sort((a,b)=> b.sc - a.sc || b.rt - a.rt);
   const rankOf = new Map(ranked.map((g,i)=>[g, i+1]));
   const byKey = {
     sid: (a,b)=> (a.sid||'~').localeCompare(b.sid||'~', 'ko', {numeric:true}) || (a.sn||'').localeCompare(b.sn||'', 'ko'),
     name: (a,b)=> (a.sn||'~').localeCompare(b.sn||'~', 'ko') || (a.sid||'').localeCompare(b.sid||'', 'ko', {numeric:true}),
     score: (a,b)=> inR(b) - inR(a) || b.sc - a.sc || b.rt - a.rt || (a.sid||'~').localeCompare(b.sid||'~', 'ko', {numeric:true})
   };
-  const sorted = list.slice().sort(byKey[tSort] || byKey.sid);
+  const sorted = allList.slice().sort(byKey[tSort] || byKey.sid);
   $('#tTableTitle').textContent = racing ? '학생 목록과 순위' : '학생 목록';
   const scoped = tAnswers();
   const wrongBy = {};
@@ -1524,7 +1583,7 @@ function renderTeacher(){
   if(!sorted.length){ const tr=document.createElement('tr'); const td=document.createElement('td'); td.colSpan=9; td.className='empty'; td.textContent='아직 접속한 학생이 없어요.'; tr.appendChild(td); tb.appendChild(tr); }
   for(const g of sorted){
     const tr = document.createElement('tr');
-    const inRace = inR(g);
+    const inRace = inR(g) && !g.lost;
     const key = (g.sid && g.sn) ? `${g.sid} ${g.sn}` : '';
     if(key){ tr.dataset.k = key; if(key === tSelStudent) tr.className = 'sel'; }
     const cell = (txt, cls) => { const td=document.createElement('td'); if(cls) td.className=cls; if(txt instanceof Node) td.appendChild(txt); else td.textContent = txt; tr.appendChild(td); return td; };
@@ -1554,6 +1613,11 @@ const TYPE_LABEL = {
 };
 const normType = t => (t === 'conceptE2' ? 'conceptE' : (t || '기타'));
 let tSort = 'sid', tScope = 'round', tSelType = '', tSelStudent = '';
+function saveResult(){
+  if(!room || teacherView || !fdb || !st.round) return;
+  const f = readForm();
+  room.child(`history/${String(st.round).slice(0,24)}/results/${pid}`).set({sid:f.id, sn:f.nm, kc:myKc, hc:myHc, sc:st.score, rt:st.right, an:st.answered, cb:st.bestCombo, md:st.mode, ts: firebase.database.ServerValue.TIMESTAMP}).catch(()=>{});
+}
 function recordAnswer(q, idx, ok){
   if(!room || teacherView || !fdb) return;
   const f = readForm();
@@ -1635,6 +1699,121 @@ $('#tDetail').addEventListener('pointerdown', e=>{ if(e.target.closest('[data-cl
 document.querySelectorAll('#tSort button').forEach(b=>b.addEventListener('click', ()=>{ tSort = b.dataset.s; document.querySelectorAll('#tSort button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); renderTeacher(); }));
 document.querySelectorAll('#tScope button').forEach(b=>b.addEventListener('click', ()=>{ tScope = b.dataset.s; document.querySelectorAll('#tScope button').forEach(x=>x.setAttribute('aria-pressed', String(x===b))); renderTeacher(); }));
 $('#tWrongClear').addEventListener('click', ()=>{ if(!room) return; if(confirm(`경기방 ${roomNo()}번의 오답 기록을 모두 지울까요? 지우면 되돌릴 수 없어요.`)) tWrite(room.child('answers').remove()); });
+// ---- 경기 기록 ----
+let tViewRec = '';
+const MODE_LABEL = {e:'하', m:'중', mix:'하 → 중'};
+function fmtTime(ms){
+  if(!ms) return '시각 모름';
+  const d = new Date(ms), w = '일월화수목금토'[d.getDay()];
+  const h = d.getHours(), ap = h < 12 ? '오전' : '오후', hh = h % 12 || 12;
+  return `${d.getMonth()+1}월 ${d.getDate()}일 (${w}) ${ap} ${hh}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+function recordOf(round){
+  const h = history[round] || {}, meta = (h.meta && typeof h.meta==='object') ? h.meta : {};
+  const res = Object.values(h.results || {}).filter(x=>x && typeof x==='object').map(x=>({sid:clean(x.sid,8), sn:clean(x.sn,10), sc:+x.sc||0, rt:+x.rt||0, an:+x.an||0, cb:+x.cb||0, kc:x.kc|0, hc:x.hc|0, md:x.md}));
+  // 같은 학생이 두 번 저장됐으면 높은 점수 하나만
+  const best = {}; for(const r of res){ const k = r.sid+' '+r.sn; if(!best[k] || best[k].sc < r.sc) best[k] = r; }
+  const list = Object.values(best).sort((a,b)=> b.sc - a.sc || b.rt - a.rt);
+  const mode = ['e','m','mix'].includes(meta.mode) ? meta.mode : (list[0] && ['e','m','mix'].includes(list[0].md) ? list[0].md : 'mix');
+  return {round, meta, list, mode, startAt: +meta.startAt || 0};
+}
+function renderHistory(){
+  if(!teacherView) return;
+  const rounds = Object.keys(history).map(recordOf).filter(r => r.list.length || r.meta.startAt).sort((a,b)=> (b.startAt||0) - (a.startAt||0));
+  const tb = $('#tHistBody'); tb.textContent = '';
+  if(!rounds.length){ const tr=el('tr'); const td=el('td',null,'아직 저장된 경기 기록이 없어요. 레이스가 끝나면 여기에 쌓여요.'); td.colSpan=7; td.style.textAlign='center'; td.style.color='var(--muted)'; td.style.padding='20px'; tr.appendChild(td); tb.appendChild(tr); }
+  for(const r of rounds){
+    const tr = el('tr'); tr.dataset.r = r.round; if(r.round === tViewRec) tr.className = 'sel';
+    const n = r.list.length, avg = n ? Math.round(r.list.reduce((s,x)=>s+x.sc,0)/n) : 0;
+    const totA = r.list.reduce((s,x)=>s+x.an,0), totR = r.list.reduce((s,x)=>s+x.rt,0);
+    const live = ctrl && ctrl.round === r.round && tRunning();
+    tr.appendChild(el('td', null, fmtTime(r.startAt) + (live ? ' (진행 중)' : '')));
+    tr.appendChild(el('td', null, MODE_LABEL[r.mode]));
+    tr.appendChild(el('td', null, `${n}명`));
+    tr.appendChild(el('td', null, n ? `${avg}점` : '–'));
+    tr.appendChild(el('td', null, totA ? `${Math.round(totR/totA*100)}%` : '–'));
+    tr.appendChild(el('td', null, n ? `${r.list[0].sn} (${r.list[0].sc}점)` : '–'));
+    const td = el('td'); const acts = el('div','acts');
+    const v = el('button','tbtn', r.round === tViewRec ? '접기' : '보기'); v.dataset.act='view';
+    const dl = el('button','tbtn','CSV'); dl.dataset.act='csv'; dl.title='엑셀에서 열 수 있는 파일로 내려받기';
+    const del = el('button','tbtn danger','삭제'); del.dataset.act='del';
+    acts.append(v, dl, del); td.appendChild(acts); tr.appendChild(td);
+    tb.appendChild(tr);
+  }
+  renderHistView();
+}
+function renderHistView(){
+  const box = $('#tHistView'); box.textContent = '';
+  if(!tViewRec || !history[tViewRec]) return;
+  const r = recordOf(tViewRec);
+  const wrap = el('div','hview');
+  const head = el('div','exhead'); head.appendChild(el('h3', null, `${fmtTime(r.startAt)} 경기 결과 (${MODE_LABEL[r.mode]}, ${r.list.length}명)`));
+  const close = el('button','tbtn','닫기'); close.style.padding='6px 12px'; close.style.fontSize='13px'; close.dataset.act='close'; head.appendChild(close);
+  wrap.appendChild(head);
+  // 이 경기의 많이 틀린 유형
+  const ans = Object.values(answers).filter(a => a && a.rnd === tViewRec);
+  const by = {}; for(const a of ans){ const t = normType(clean(a.ty,20)); const o = by[t] || (by[t] = {n:0, w:0}); o.n++; if(!a.ok) o.w++; }
+  const top = Object.entries(by).filter(([,o])=>o.w>0).sort((a,b)=> b[1].w - a[1].w).slice(0,5);
+  if(top.length){
+    wrap.appendChild(el('p','tsumline','이 경기에서 많이 틀린 유형'));
+    const ty = el('div','types');
+    for(const [t,o] of top){ const sp = el('span', null, `${TYPE_LABEL[t]||t} `); sp.appendChild(el('b', null, `${o.w}/${o.n}`)); ty.appendChild(sp); }
+    wrap.appendChild(ty);
+  }
+  const tbl = el('table'); const th = el('thead'); const hr = el('tr');
+  for(const h of ['순위','카트','학번','이름','점수','맞힌 문제','정답률','최고 연속 정답']) hr.appendChild(el('th', null, h));
+  th.appendChild(hr); tbl.appendChild(th);
+  const bd = el('tbody');
+  r.list.forEach((x,i)=>{
+    const tr = el('tr');
+    tr.appendChild(el('td','num', String(i+1)));
+    const td = el('td'); const k = el('span','kchip'); k.style.background = (KART[x.kc]||KART[0])[0]; k.style.borderColor = (HELM[x.hc]||HELM[0])[0]; td.appendChild(k); tr.appendChild(td);
+    tr.appendChild(el('td', null, x.sid || '–')); tr.appendChild(el('td', null, x.sn || '–'));
+    tr.appendChild(el('td','num', String(x.sc)));
+    tr.appendChild(el('td', null, `${x.rt}/${x.an}`));
+    tr.appendChild(el('td', null, x.an ? `${Math.round(x.rt/x.an*100)}%` : '–'));
+    tr.appendChild(el('td', null, String(x.cb)));
+    bd.appendChild(tr);
+  });
+  if(!r.list.length){ const tr = el('tr'); const td = el('td', null, '저장된 학생 결과가 없어요.'); td.colSpan = 8; tr.appendChild(td); bd.appendChild(tr); }
+  tbl.appendChild(bd);
+  const sc = el('div'); sc.style.overflowX='auto'; sc.appendChild(tbl); wrap.appendChild(sc);
+  box.appendChild(wrap);
+}
+function csvOf(round){
+  const r = recordOf(round);
+  const q = v => '"' + String(v).replace(/"/g,'""') + '"';
+  const rows = [['경기방','날짜와 시각','난이도','순위','학번','이름','점수','맞힌 문제','푼 문제','정답률(%)','최고 연속 정답']];
+  r.list.forEach((x,i)=> rows.push([roomNo(), fmtTime(r.startAt), MODE_LABEL[r.mode], i+1, x.sid, x.sn, x.sc, x.rt, x.an, x.an ? Math.round(x.rt/x.an*100) : 0, x.cb]));
+  return '\ufeff' + rows.map(row => row.map(q).join(',')).join('\r\n');
+}
+function deleteRecord(round){
+  if(!room) return;
+  const upd = {}; upd['history/'+round] = null;
+  for(const [k,a] of Object.entries(answers)) if(a && a.rnd === round) upd['answers/'+k] = null;
+  if(tViewRec === round) tViewRec = '';
+  tWrite(room.update(upd));
+}
+$('#tHistBody').addEventListener('click', e=>{
+  const b = e.target.closest('button[data-act]'); const tr = e.target.closest('tr[data-r]'); if(!b || !tr) return;
+  const round = tr.dataset.r;
+  if(b.dataset.act === 'view'){ tViewRec = tViewRec === round ? '' : round; renderHistory(); }
+  else if(b.dataset.act === 'csv'){ const r = recordOf(round); const d = new Date(r.startAt || Date.now()); downloadText(`원의성질서킷_경기방${roomNo()}_${d.getMonth()+1}월${d.getDate()}일_${d.getHours()}시${String(d.getMinutes()).padStart(2,'0')}분.csv`, csvOf(round), 'text/csv'); }
+  else if(b.dataset.act === 'del'){ if(confirm(`${fmtTime(recordOf(round).startAt)} 경기 기록을 삭제할까요?\n학생 점수와 이 경기의 오답 기록이 함께 지워지고, 되돌릴 수 없어요.`)) deleteRecord(round); }
+});
+$('#tHistView').addEventListener('click', e=>{ if(e.target.closest('[data-act="close"]')){ tViewRec = ''; renderHistory(); } });
+$('#tHistClear').addEventListener('click', ()=>{
+  if(!room) return;
+  if(!Object.keys(history).length){ alert('삭제할 기록이 없어요.'); return; }
+  if(confirm(`경기방 ${roomNo()}번의 지난 경기 기록을 모두 삭제할까요?\n모든 학생 점수와 오답 기록이 함께 지워지고, 되돌릴 수 없어요.`)){
+    tViewRec = ''; tWrite(room.update({history:null, answers:null}));
+  }
+});
+function downloadText(name, text, type){
+  const blob = new Blob([text], {type: type + ';charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
 function renderMap(racers){
   const cx=160, cy=160, R0=98;
   let s = `<circle cx="${cx}" cy="${cy}" r="${R0}" fill="none" stroke="#6CBF5A" stroke-width="60"/>`;
