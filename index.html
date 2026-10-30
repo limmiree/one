@@ -73,6 +73,8 @@ button{font:inherit;color:inherit}
 .f-tk{stroke:var(--ink);stroke-width:1.4}
 .f-d{fill:var(--ink)}
 .f-r{fill:none;stroke:var(--ink);stroke-width:1.2}
+.f-dim,.f-dim0{stroke:var(--muted);stroke-width:1.2}
+.f-dim{stroke-dasharray:4 3}
 .f-a{fill:none;stroke:var(--blue);stroke-width:1.6}
 .f-arc{fill:none;stroke:var(--blue);stroke-width:4;stroke-linecap:round;opacity:.75}
 .f-t{font-size:13px;fill:var(--ink);text-anchor:middle;dominant-baseline:middle;font-family:"Gothic A1",sans-serif;font-weight:600}
@@ -627,9 +629,10 @@ function arcPath(a1,a2,r=FC.r){ const s=pc(a1,r), e=pc(a2,r); return `<path clas
 
 function figPerp(amT, abT){
   const A=pc(205), B=pc(335), M=mid(A,B);
-  let s = CIR()+LN(A,B)+LN(O,M)+RT(M,O,B)+lblO()+P_('A',A)+P_('B',B)+DT(M)+TX('M',{x:M.x+10,y:M.y+12});
-  if(amT) s += TX(amT, {x:(A.x+M.x)/2, y:M.y-11}, 'f-v');
-  if(abT) s += TX(abT, {x:(A.x+M.x)/2, y:M.y+14}, 'f-v');
+  let s = CIR()+LN(A,B)+LN(O,M)+RT(M,O,B)+lblO()+P_('A',A)+P_('B',B)+DT(M);
+  if(amT) s += TX('M',{x:M.x+10,y:M.y+12}) + TX(amT, {x:(A.x+M.x)/2, y:M.y-11}, 'f-v');
+  if(abT) s += TX('M',{x:M.x-10,y:M.y-10}) + DIM(A,B,abT);
+  if(!amT && !abT) s += TX('M',{x:M.x+10,y:M.y+12});
   return SV(s);
 }
 function tanGeo(){ const Oc={x:150,y:110}, r=54, Pp={x:24,y:110}; const ph=Math.acos(r/(Oc.x-Pp.x))*180/Math.PI; return {Oc,r,Pp,A:pc(180-ph,r,Oc),B:pc(180+ph,r,Oc)}; }
@@ -675,14 +678,14 @@ function figTanChord(o){
 function figEq(abT,cdT){
   const A=pc(210), B=pc(330), C=pc(120), D=pc(0), M=mid(A,B), N=mid(C,D);
   let s = CIR()+LN(A,B)+LN(C,D)+LN(O,M)+LN(O,N)+RT(M,O,B)+RT(N,O,D)+TK(O,M,1)+TK(O,N,1)+lblO()+P_('A',A)+P_('B',B)+P_('C',C)+P_('D',D);
-  s += DT(M)+TX('M',{x:M.x+11,y:M.y+11})+DT(N)+TX('N',add(N,mul(nrm(sub(C,D)),12)));
-  s += TX(abT,{x:(A.x+M.x)/2,y:M.y+14},VC(abT))+SEGO(C,D,cdT,O,13);
+  s += DT(M)+TX('M',{x:M.x-10,y:M.y-10})+DT(N)+TX('N',add(N,mul(nrm(sub(C,D)),12)));
+  s += DIM(A,B,abT)+SEGO(C,D,cdT,O,13);
   return SV(s);
 }
 function figPyth(rT,dT,abT){
   const A=pc(210), B=pc(330), M=mid(A,B);
-  let s = CIR()+LN(A,B)+LN(O,M)+LN(O,A)+RT(M,O,B)+lblO()+P_('A',A)+P_('B',B)+DT(M)+TX('M',{x:M.x+10,y:M.y+12});
-  s += SEGO(O,A,rT,M,12)+TX(dT,{x:O.x+16,y:(O.y+M.y)/2},VC(dT))+TX(abT,{x:(A.x+M.x)/2,y:M.y+14},VC(abT));
+  let s = CIR()+LN(A,B)+LN(O,M)+LN(O,A)+RT(M,O,B)+lblO()+P_('A',A)+P_('B',B)+DT(M)+TX('M',{x:M.x+10,y:M.y-10});
+  s += SEGO(O,A,rT,M,12)+TX(dT,{x:O.x+18,y:(O.y+M.y)/2-6},VC(dT))+DIM(A,B,abT);
   return SV(s);
 }
 function figTri(tA,tB,tC){
@@ -718,6 +721,22 @@ function figArc(pT,qT,abT,cdT){
   s += TX(abT,pc(222,FC.r+16),VC(abT))+TX(cdT,pc(312,FC.r+16),VC(cdT));
   return SV(s);
 }
+function DIM(A,B,label,off=9){
+  const a={x:A.x,y:A.y+off}, b={x:B.x,y:B.y+off};
+  return LN(a,b,'f-dim')+LN({x:a.x,y:a.y-4},{x:a.x,y:a.y+4},'f-dim0')+LN({x:b.x,y:b.y-4},{x:b.x,y:b.y+4},'f-dim0')+TX(label,{x:(a.x+b.x)/2,y:(a.y+b.y)/2+11},VC(label));
+}
+function figBisector(){
+  const A=pc(205), B=pc(335), M=mid(A,B), top=pc(90), bot=pc(270);
+  return SV(CIR()+LN(A,B)+LN({x:M.x,y:top.y-6},{x:M.x,y:bot.y+6},'f-dim')+RT(M,top,B,8)+TK(A,M,1)+TK(M,B,1)+DT(O)+TX('?',{x:O.x+14,y:O.y-10},'f-x')+P_('A',A)+P_('B',B)+DT(M)+TX('M',{x:M.x+11,y:M.y+12}));
+}
+function figTanRadius(){
+  const A=pc(270), T={x:190,y:A.y};
+  return SV(CIR()+LN({x:24,y:A.y},{x:206,y:A.y})+LN(O,A)+lblO()+DT(A)+TX('A',{x:A.x-4,y:A.y+13})+DT(T)+TX('T',{x:T.x,y:T.y+13})+ANG(A,O,T,'x',16,30)+TX('접선',{x:48,y:A.y-10},'f-v')+TX('반지름',{x:O.x-24,y:(O.y+A.y)/2},'f-v'));
+}
+function figEqLen(){
+  const A=pc(210), B=pc(330), C=pc(120), D=pc(0), M=mid(A,B), N=mid(C,D);
+  return SV(CIR()+LN(A,B)+LN(C,D)+LN(O,M)+LN(O,N)+RT(M,O,B)+RT(N,O,D)+TK(A,B,2)+TK(C,D,2)+lblO()+P_('A',A)+P_('B',B)+P_('C',C)+P_('D',D)+DT(M)+TX('M',{x:M.x-10,y:M.y-10})+DT(N)+TX('N',add(N,mul(nrm(sub(C,D)),12)))+TX('?',{x:(O.x+M.x)/2-10,y:(O.y+M.y)/2},'f-x')+TX('?',add(mid(O,N),{x:-8,y:-8}),'f-x'));
+}
 const figBlank = () => SV(CIR()+lblO());
 
 // ---- 문제 만들기 ----
@@ -728,21 +747,21 @@ function N(lv,sec,text,fig,ans,cands,fmt,tip){
   while(o.length<3){ const v=ans+(k%2?1:-1)*Math.ceil(k/2)*step; if(v>0 && !o.includes(v)) o.push(v); k++; }
   return {lv,sec,text,fig,ans:fmt(ans),opts:shuffle(o).map(fmt),tip};
 }
-function T(lv,row){ const [text,ans,w1,w2,sec,tip]=row; return {lv,sec,text,fig:figBlank(),ans,opts:shuffle([ans,w1,w2]),tip}; }
+function T(lv,row){ const [text,ans,w1,w2,sec,tip,fig]=row; return {lv,sec,text,fig:(fig?fig():figBlank()),ans,opts:shuffle([ans,w1,w2]),tip}; }
 
 const CONCEPT_E = [
-  ['원의 중심에서 현에 내린 수선은 그 현을 어떻게 나눌까?','이등분','삼등분','나누지 않음','6.1 원과 현','수선의 발이 현의 중점이 돼요.'],
-  ['현의 수직이등분선은 원의 어느 점을 지날까?','중심','접점','현의 끝점','6.1 원과 현','현의 양 끝점에서 같은 거리에 있는 점이 원의 중심이에요.'],
-  ['원 밖의 한 점에서 그 원에 그을 수 있는 접선은 몇 개일까?','2개','1개','3개','6.2 원과 접선','원 밖의 한 점에서는 접선을 2개 그을 수 있어요.'],
-  ['원의 접선과 그 접점을 지나는 반지름이 이루는 각의 크기는?','90°','60°','180°','6.2 원과 접선','접선은 접점을 지나는 반지름과 수직이에요.'],
-  ['반원에 대한 원주각의 크기는?','90°','180°','45°','6.3 원주각','중심각 180°의 1/2이므로 90°예요.'],
-  ['한 호에 대한 원주각의 크기는 중심각의 크기의 몇 배일까?','1/2배','2배','1배','6.3 원주각','원주각 = 중심각 × 1/2'],
-  ['원에 내접하는 사각형에서 마주 보는 두 내각의 크기의 합은?','180°','360°','90°','6.4 원주각의 활용','원에 내접하는 사각형의 대각의 합은 180°예요.']
+  ['원의 중심에서 현에 내린 수선은 그 현을 어떻게 나눌까?','이등분','삼등분','나누지 않음','6.1 원과 현','수선의 발이 현의 중점이 돼요.', ()=>figPerp(null,null)],
+  ['현의 수직이등분선은 원의 어느 점을 지날까?','중심','접점','현의 끝점','6.1 원과 현','현의 양 끝점에서 같은 거리에 있는 점이 원의 중심이에요.', figBisector],
+  ['원 밖의 한 점에서 그 원에 그을 수 있는 접선은 몇 개일까?','2개','1개','3개','6.2 원과 접선','원 밖의 한 점에서는 접선을 2개 그을 수 있어요.', ()=>figTan({})],
+  ['원의 접선과 그 접점을 지나는 반지름이 이루는 각의 크기는?','90°','60°','180°','6.2 원과 접선','접선은 접점을 지나는 반지름과 수직이에요.', figTanRadius],
+  ['반원에 대한 원주각의 크기는?','90°','180°','45°','6.3 원주각','중심각 180°의 1/2이므로 90°예요.', ()=>figSemi('x',null,null)],
+  ['한 호에 대한 원주각의 크기는 중심각의 크기의 몇 배일까?','1/2배','2배','1배','6.3 원주각','원주각 = 중심각 × 1/2', ()=>figInsc('중심각','원주각')],
+  ['원에 내접하는 사각형에서 마주 보는 두 내각의 크기의 합은?','180°','360°','90°','6.4 원주각의 활용','원에 내접하는 사각형의 대각의 합은 180°예요.', ()=>figCyc({A:'x',C:'y'})]
 ];
 const CONCEPT_M = [
-  [`원에 외접하는 사각형 ABCD에서 ${OV('AB')}+${OV('CD')}와 길이가 같은 것은?`,'AD+BC','AC+BD','AB+BC','6.2 원과 접선','원에 외접하는 사각형은 마주 보는 두 변의 길이의 합이 같아요.'],
-  ['한 원에서 길이가 같은 두 현은 원의 중심으로부터의 거리가 어떨까?','같다','2배 차이','알 수 없다','6.1 원과 현','길이가 같은 두 현은 중심에서 같은 거리에 있어요.'],
-  ['한 원에서 호의 길이는 그 호에 대한 원주각의 크기에 어떻게 될까?','정비례','반비례','상관없음','6.3 원주각','원주각이 2배가 되면 호의 길이도 2배가 돼요.']
+  [`원에 외접하는 사각형 ABCD에서 ${OV('AB')}+${OV('CD')}와 길이가 같은 것은?`,'AD+BC','AC+BD','AB+BC','6.2 원과 접선','원에 외접하는 사각형은 마주 보는 두 변의 길이의 합이 같아요.', ()=>figQuad({})],
+  ['한 원에서 길이가 같은 두 현은 원의 중심으로부터의 거리가 어떨까?','같다','2배 차이','알 수 없다','6.1 원과 현','길이가 같은 두 현은 중심에서 같은 거리에 있어요.', figEqLen],
+  ['한 원에서 호의 길이는 그 호에 대한 원주각의 크기에 어떻게 될까?','정비례','반비례','상관없음','6.3 원주각','원주각이 2배가 되면 호의 길이도 2배가 돼요.', ()=>figArc('a°','2a°','ℓ','?')]
 ];
 
 const GEN = {
